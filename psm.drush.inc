@@ -303,15 +303,16 @@ function drush_psm_instances($service_name = NULL, $instance_name = NULL) {
   $output = array();
   foreach ($instances as $service_name => $instance_list) {
     $service = $services[$service_name];
-    foreach ($instance_list as $name => $instance) {
+    foreach ($instance_list as $name => $info) {
+      $instance = psm_instance_factory($info);
       $output[$name] = array(
         'service' => $service['label'],
-        'name' => $instance['name'],
-        'label' => $instance['label'],
-        'description' => $instance['description'],
-        'status' => $instance['status'],
-        'version' => $instance['version'],
-        'uri' => $instance['uri'],
+        'name' => $instance->name(),
+        'label' => $instance->label(),
+        'description' => $instance->description(),
+        'status' => $instance->status(),
+        'version' => $instance->version(),
+        'uri' => '',
       );
     }
   }
@@ -494,43 +495,35 @@ function drush_psm_groups($name = NULL) {
 /**
  * @return array
  */
-function psm_info_service() {
+function psm_info_service($name = NULL) {
   static $services = NULL;
 
   if ($services === NULL) {
     $services = drush_command_invoke_all('drush_psm_service_info');
 
-    $command_files = drush_commandfile_list();
     foreach (array_keys($services) as $service_name) {
       $service =& $services[$service_name];
-
-      $service = array_replace_recursive(
-        _psm_info_service_defaults($service_name, $service),
-        $service
-      );
-      if (
-        $service['class']
-        && !$service['files']
-        && $service['command_file']
-      ) {
-        $command_file_dir = dirname($command_files[$service['command_file']]);
-        $file = "$command_file_dir/includes/{$service['class']}.inc";
-        if (file_exists($file)) {
-          $service['files'][] = $file;
-        }
-      }
+      $service = _psm_info_service_defaults($service_name, $service);
     }
 
     drush_command_invoke_all('drush_psm_service_info_alter', $services);
 
     foreach (array_keys($services) as $service_name) {
       if (!_psm_class_exists($services[$service_name]['class'], $services[$service_name]['files'])) {
-        unset($services[$services]);
+        unset($services[$service_name]);
         continue;
       }
 
       $services[$service_name]['name'] = $service_name;
     }
+  }
+
+  if ($name) {
+    if (!array_key_exists($name, $services)) {
+      throw new Exception('Invalid argument', 1);
+    }
+
+    return $services[$name];
   }
 
   return $services;
@@ -572,15 +565,34 @@ function psm_info_group() {
 }
 
 /**
+ *
+ *
+ * @param array|string $info
+ * @param string $name
+ *
+ * @return PsmInstanceInterface
+ */
+function psm_instance_factory($info, $name = NULL) {
+  if (!is_array($info)) {
+    $instances = psm_info_instance();
+    $info = $instances[$info][$name];
+  }
+
+  $service = psm_info_service($info['service']);
+
+  $class = $service['class'];
+
+  return $class::factory($info);
+}
+
+/**
  * @param string $service_name
  * @param array $info
  *
  * @return array
  */
-function _psm_info_service_defaults($service_name, $info) {
-  $base = "psm_{$service_name}_drush_psm_service";
-
-  return array(
+function _psm_info_service_defaults($service_name, array $info = array()) {
+  $info += array(
     // Provider module.
     // Required.
     'command_file' => "psm_$service_name",
@@ -595,14 +607,27 @@ function _psm_info_service_defaults($service_name, $info) {
     'description' => NULL,
 
     'files' => array(),
-    'class' => 'PsmService' . strtoupper(substr($service_name, 0, 1)) . substr($service_name, 1),
-    // Prefix of the callback functions.
-    'base' => $base,
-    // Callback function names.
-    'callback' => array(
-      'instance' => "{$base}_instance",
-    ),
+    'class' => '',
   );
+
+  $class = 'PsmInstance' . strtoupper(substr($service_name, 0, 1)) . substr($service_name, 1);
+  if (empty($info['class'])) {
+    $info['class'] = $class;
+  }
+
+  if (empty($info['files']) && $info['command_file']) {
+    $command_files = drush_commandfile_list();
+    $self_dir = dirname($command_files['psm']);
+    $command_file_dir = dirname($command_files[$info['command_file']]);
+    $file = "$command_file_dir/includes/{$info['class']}.inc";
+    if (file_exists($file)) {
+      $info['files'][] = "$self_dir/includes/PsmInstanceInterface.inc";
+      $info['files'][] = "$self_dir/includes/PsmInstanceBase.inc";
+      $info['files'][] = $file;
+    }
+  }
+
+  return $info;
 }
 
 /**

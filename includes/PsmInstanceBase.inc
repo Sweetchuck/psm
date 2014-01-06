@@ -152,16 +152,23 @@ abstract class PsmInstanceBase implements PsmInstanceInterface {
 
   /**
    * @param string $key
-   *
-   * @return mixed
+   * @param bool $required
+   * @param mixed $default
    *
    * @throws Exception
+   * @return mixed
+   *
    */
-  protected function getInfoEntry($key) {
+  protected function getInfoEntry($key, $required = TRUE, $default = NULL) {
     $info = $this->getInfo();
 
     if (!array_key_exists($key, $info)) {
-      throw new Exception('Invalid argument', 1);
+      if ($required) {
+        throw new Exception("Invalid argument: $key", 1);
+      }
+      else {
+        return $default;
+      }
     }
 
     return $info[$key];

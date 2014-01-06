@@ -48,8 +48,8 @@ interface PsmInstanceInterface {
    */
   public function status();
 
-//  public function start();
-//  public function stop();
+  public function start();
+  public function stop();
 //  public function restart();
 //  public function reload();
 }

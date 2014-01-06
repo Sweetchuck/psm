@@ -272,32 +272,9 @@ function drush_psm_instances_validate($service_name = NULL, $instance_name = NUL
  * Implements drush_COMMAND().
  */
 function drush_psm_instances($service_name = NULL, $instance_name = NULL) {
-  $instances = psm_info_instance();
-
   $group_name = drush_get_option('group', NULL);
-  if (!$service_name && !$instance_name && $group_name) {
-    $tmp_instances = array();
-    $groups = psm_info_group();
-    foreach ($groups[$group_name]['instances'] as $group_service_name => $group_instances) {
-      foreach ($group_instances as $group_instance) {
-        $tmp_instances[$group_service_name][$group_instance] = $instances[$group_service_name][$group_instance];
-      }
-    }
-    $instances = $tmp_instances;
-  }
-  elseif ($service_name && $instance_name) {
-    $instances = array(
-      $service_name => array(
-        $instance_name => $instances[$service_name][$instance_name],
-      ),
-    );
-  }
-  elseif ($service_name) {
-    $instances = array(
-      $service_name => $instances[$service_name],
-    );
-  }
 
+  $instances = psm_get_instances($service_name, $instance_name, $group_name);
   $services = psm_info_service();
 
   $output = array();
@@ -342,7 +319,24 @@ function drush_psm_instances($service_name = NULL, $instance_name = NULL) {
 /**
  * Implements drush_COMMAND().
  */
-function drush_psm_status() {
+function drush_psm_status($service_name = NULL, $instance_name = NULL) {
+  $group_name = drush_get_option('group', NULL);
+
+  $instances = psm_get_instances($service_name, $instance_name, $group_name);
+  $services = psm_info_service();
+  foreach ($instances as $service_name => $instance_list) {
+    $service = $services[$service_name];
+    foreach ($instance_list as $info) {
+      $instance = psm_instance_factory($info);
+      $label = $service['label'] . ':' . $instance->label();
+      if ($instance->status()) {
+        drush_log($label, 'success');
+      }
+      else {
+        drush_log($label, 'error');
+      }
+    }
+  }
 }
 
 //drush_hook_post_COMMAND
@@ -367,7 +361,24 @@ function drush_psm_status() {
 /**
  * Implements drush_COMMAND().
  */
-function drush_psm_start() {
+function drush_psm_start($service_name = NULL, $instance_name = NULL) {
+  $group_name = drush_get_option('group', NULL);
+
+  $instances = psm_get_instances($service_name, $instance_name, $group_name);
+  $services = psm_info_service();
+  foreach ($instances as $service_name => $instance_list) {
+    $service = $services[$service_name];
+    foreach ($instance_list as $info) {
+      $instance = psm_instance_factory($info);
+      $label = $service['label'] . ':' . $instance->label();
+      if ($instance->start()) {
+        drush_log($label, 'success');
+      }
+      else {
+        drush_log($label, 'error');
+      }
+    }
+  }
 }
 
 //drush_hook_post_COMMAND
@@ -392,7 +403,24 @@ function drush_psm_start() {
 /**
  * Implements drush_COMMAND().
  */
-function drush_psm_stop() {
+function drush_psm_stop($service_name = NULL, $instance_name = NULL) {
+  $group_name = drush_get_option('group', NULL);
+
+  $instances = psm_get_instances($service_name, $instance_name, $group_name);
+  $services = psm_info_service();
+  foreach ($instances as $service_name => $instance_list) {
+    $service = $services[$service_name];
+    foreach ($instance_list as $info) {
+      $instance = psm_instance_factory($info);
+      $label = $service['label'] . ':' . $instance->label();
+      if ($instance->stop()) {
+        drush_log($label, 'success');
+      }
+      else {
+        drush_log($label, 'error');
+      }
+    }
+  }
 }
 
 //drush_hook_post_COMMAND
@@ -583,6 +611,41 @@ function psm_instance_factory($info, $name = NULL) {
   $class = $service['class'];
 
   return $class::factory($info);
+}
+
+function psm_get_instances($service_name = NULL, $instance_name = NULL, $group_name = NULL) {
+  $instances = psm_info_instance();
+  if (!$service_name && !$instance_name && $group_name) {
+    $instances = psm_get_instances_by_group($group_name);
+  }
+  elseif ($service_name && $instance_name) {
+    $instances = array(
+      $service_name => array(
+        $instance_name => $instances[$service_name][$instance_name],
+      ),
+    );
+  }
+  elseif ($service_name) {
+    $instances = array(
+      $service_name => $instances[$service_name],
+    );
+  }
+
+  return $instances;
+}
+
+function psm_get_instances_by_group($group_name) {
+  $instances_all = psm_info_instance();
+  $instances = array();
+  $groups = psm_info_group();
+  foreach ($groups[$group_name]['instances'] as $group_service_name => $group_instances) {
+    $instances[$group_service_name] = array_intersect_key(
+      $instances_all[$group_service_name],
+      array_flip($group_instances)
+    );
+  }
+
+  return $instances;
 }
 
 /**

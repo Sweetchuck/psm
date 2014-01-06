@@ -117,17 +117,24 @@ abstract class PsmInstanceBase implements PsmInstanceInterface {
   }
 
   /**
+   * @throws Exception
    * @return string
    */
   public function version() {
-    $cmd = escapeshellcmd($this->getInfoEntry('executable'));
-    $cmd .= ' ' . $this->versionOption;
-    if (drush_shell_exec($cmd)) {
-      $output = implode("\n", drush_shell_exec_output());
-      $matches = array('version' => '');
-      preg_match($this->versionPattern, $output, $matches);
+    $cmd = escapeshellcmd($this->getInfoEntry('executable', FALSE));
+    if ($cmd && $this->versionOption !== NULL) {
+      if (!is_executable($cmd)) {
+        throw new Exception('Not executable: ' . $cmd, 1);
+      }
 
-      return $matches['version'];
+      $cmd .= ' ' . $this->versionOption;
+      if (drush_shell_exec($cmd)) {
+        $output = implode("\n", drush_shell_exec_output());
+        $matches = array('version' => '');
+        preg_match($this->versionPattern, $output, $matches);
+
+        return $matches['version'];
+      }
     }
 
     return '';
@@ -136,16 +143,12 @@ abstract class PsmInstanceBase implements PsmInstanceInterface {
   /**
    * @return int
    */
-  public function status() {
-    $info = $this->getInfo();
+  public abstract function status();
 
-    return static::getPid($info['pid_file']);
-  }
+  public abstract function start();
 
-//  public abstract function start();
-//
-//  public abstract function stop();
-//
+  public abstract function stop();
+
 //  public abstract function restart();
 //
 //  public abstract function reload();
@@ -172,6 +175,10 @@ abstract class PsmInstanceBase implements PsmInstanceInterface {
     }
 
     return $info[$key];
+  }
+
+  protected function statusByPidFile() {
+    return static::getPid($this->getInfoEntry('pid_file'));
   }
 
 }

@@ -10,14 +10,19 @@ abstract class PsmInstanceBase implements PsmInstanceInterface {
   /**
    * @var array
    */
-  static protected $instances = array();
+  protected static $instances = array();
+
+  /**
+   * @var int
+   */
+  protected static $defaultStatusDelay = 0;
 
   /**
    * @param array $info
    *
    * @return PsmInstanceInterface
    */
-  static public function factory(array $info) {
+  public static function factory(array $info) {
     if (!array_key_exists($info['name'], static::$instances)) {
       static::$instances[$info['name']] = new static($info);
     }
@@ -30,7 +35,7 @@ abstract class PsmInstanceBase implements PsmInstanceInterface {
    *
    * @return int
    */
-  static public function getPid($file_name) {
+  public static function getPid($file_name) {
     if (!$file_name || !is_readable($file_name)) {
       return 0;
     }
@@ -42,10 +47,29 @@ abstract class PsmInstanceBase implements PsmInstanceInterface {
 
   /**
    * @param int $pid
+   *   Process ID.
+   *
+   * @return bool
+   */
+  public static function isPidRunning($pid) {
+    if (!$pid) {
+      return FALSE;
+    }
+
+    $cmd = sprintf('kill -s 0 %d', $pid);
+    $return_var = NULL;
+    $output = NULL;
+    exec($cmd, $output, $return_var);
+
+    return $return_var === 0;
+  }
+
+  /**
+   * @param int $pid
    *
    * @return string|bool
    */
-  static public function getCmdLine($pid) {
+  public static function getCmdLine($pid) {
     if (!$pid) {
       return FALSE;
     }
@@ -72,7 +96,7 @@ abstract class PsmInstanceBase implements PsmInstanceInterface {
   /**
    * @var string
    */
-  protected $versionPattern = '/(?P<version>\d+[^\s]{0,})/';
+  protected $versionPattern = '/(?P<version>\d[^\s]{0,})/';
 
   /**
    * @param array $info
@@ -141,17 +165,33 @@ abstract class PsmInstanceBase implements PsmInstanceInterface {
   }
 
   /**
-   * @return int
+   * {@inherit}
    */
-  public abstract function status();
+  public abstract function status($delay = FALSE);
 
+  /**
+   * {@inherit}
+   */
   public abstract function start();
 
+  /**
+   * {@inherit}
+   */
   public abstract function stop();
 
-//  public abstract function restart();
-//
-//  public abstract function reload();
+  /**
+   * {@inherit}
+   */
+  public function restart() {
+    $this->stop();
+
+    return $this->start();
+  }
+
+  /**
+   * {@inherit}
+   */
+  public abstract function reload();
 
   /**
    * @param string $key
@@ -160,7 +200,6 @@ abstract class PsmInstanceBase implements PsmInstanceInterface {
    *
    * @throws Exception
    * @return mixed
-   *
    */
   protected function getInfoEntry($key, $required = TRUE, $default = NULL) {
     $info = $this->getInfo();
@@ -177,8 +216,20 @@ abstract class PsmInstanceBase implements PsmInstanceInterface {
     return $info[$key];
   }
 
+  /**
+   * @return int
+   */
   protected function statusByPidFile() {
-    return static::getPid($this->getInfoEntry('pid_file'));
+    $pid = static::getPid($this->getInfoEntry('pid_file'));
+
+    return static::isPidRunning($pid) ? $pid : 0;
+  }
+
+  /**
+   * @return int
+   */
+  protected function getStatusDelay() {
+    return $this->getInfoEntry('status_delay', FALSE, static::$defaultStatusDelay);
   }
 
 }

@@ -521,6 +521,10 @@ function drush_psm_groups($name = NULL) {
 //drush_hook_post_COMMAND
 
 /**
+ * @param null|string $name
+ *
+ * @throws Exception
+ *
  * @return array
  */
 function psm_info_service($name = NULL) {
@@ -568,6 +572,7 @@ function psm_info_instance() {
     foreach (array_keys($instances) as $service_name) {
       foreach (array_keys($instances[$service_name]) as $instance_name) {
         $instances[$service_name][$instance_name]['name'] = $instance_name;
+        $instances[$service_name][$instance_name]['service'] = $service_name;
       }
     }
   }
@@ -584,8 +589,7 @@ function psm_info_group() {
   if ($groups === NULL) {
     $groups = _psm_config('groups');
     foreach (array_keys($groups) as $group_name) {
-      $group =& $groups[$group_name];
-      $group['name'] = $group_name;
+      $groups[$group_name]['name'] = $group_name;
     }
   }
 

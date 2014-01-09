@@ -44,12 +44,42 @@ interface PsmInstanceInterface {
   public function version();
 
   /**
-   * @return int
+   * @param int|bool $delay
+   *   FALSE means no delay.
+   *   TRUE means default amount of delay.
+   *   Integer value means number of seconds to delay.
+   *   Wait $delay seconds before check the status.
+   *
+   * @return int|bool
+   *   If the service is running the process ID if available or TRUE otherwise
+   *   zero or FALSE.
    */
-  public function status();
+  public function status($delay = FALSE);
 
+  /**
+   * @return int|bool
+   *   If the service is running the process ID if available or TRUE otherwise
+   *   zero or FALSE.
+   */
   public function start();
+
+  /**
+   * @return bool
+   *   TRUE if the service is not running otherwise FALSE.
+   */
   public function stop();
-//  public function restart();
-//  public function reload();
+
+  /**
+   * @return int|bool
+   *   If the service is running the process ID if available or TRUE otherwise
+   *   zero or FALSE.
+   */
+  public function restart();
+
+  /**
+   * @return int|bool
+   *   If the service is running the process ID if available or TRUE otherwise
+   *   zero or FALSE.
+   */
+  public function reload();
 }

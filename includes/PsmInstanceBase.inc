@@ -245,7 +245,7 @@ abstract class PsmInstanceBasePid extends PsmInstanceBase {
     }
 
     if (_drush_shell_exec($this->getExecutable())) {
-      return  $this->status(TRUE);
+      return $this->status(TRUE);
     }
 
     return FALSE;

@@ -176,16 +176,6 @@ function psm_drush_command() {
 }
 
 /**
- * Implements drush_COMMAND_init().
- */
-//function drush_psm_services_init() {}
-
-/**
- * Implements drush_COMMAND_pre_validate().
- */
-//function drush_psm_services_pre_validate() {}
-
-/**
  * Implements drush_COMMAND_validate().
  */
 function drush_psm_services_validate($name = NULL) {
@@ -193,8 +183,6 @@ function drush_psm_services_validate($name = NULL) {
     drush_set_error('psm_unknown_service', dt('Service "@name" is not exists.', array('@name' => $name)));
   }
 }
-
-//drush_hook_pre_COMMAND
 
 /**
  * Implements drush_COMMAND().
@@ -218,18 +206,6 @@ function drush_psm_services($name = NULL) {
 
   return $output;
 }
-
-//drush_hook_post_COMMAND
-
-/**
- * Implements drush_COMMAND_init().
- */
-//function drush_psm_instances_init() {}
-
-/**
- * Implements drush_COMMAND_pre_validate().
- */
-//function drush_psm_instances_pre_validate() {}
 
 /**
  * Implements drush_COMMAND_validate().
@@ -266,8 +242,6 @@ function drush_psm_instances_validate($service_name = NULL, $instance_name = NUL
   }
 }
 
-//drush_hook_pre_COMMAND
-
 /**
  * Implements drush_COMMAND().
  */
@@ -297,25 +271,6 @@ function drush_psm_instances($service_name = NULL, $instance_name = NULL) {
   return $output;
 }
 
-//drush_hook_post_COMMAND
-
-/**
- * Implements drush_COMMAND_init().
- */
-//function drush_psm_status_init() {}
-
-/**
- * Implements drush_COMMAND_pre_validate().
- */
-//function drush_psm_status_pre_validate() {}
-
-/**
- * Implements drush_COMMAND_validate().
- */
-//function drush_psm_status_validate() {}
-
-//drush_hook_pre_COMMAND
-
 /**
  * Implements drush_COMMAND().
  */
@@ -338,25 +293,6 @@ function drush_psm_status($service_name = NULL, $instance_name = NULL) {
     }
   }
 }
-
-//drush_hook_post_COMMAND
-
-/**
- * Implements drush_COMMAND_init().
- */
-//function drush_psm_start_init() {}
-
-/**
- * Implements drush_COMMAND_pre_validate().
- */
-//function drush_psm_start_pre_validate() {}
-
-/**
- * Implements drush_COMMAND_validate().
- */
-//function drush_psm_start_validate() {}
-
-//drush_hook_pre_COMMAND
 
 /**
  * Implements drush_COMMAND().
@@ -381,25 +317,6 @@ function drush_psm_start($service_name = NULL, $instance_name = NULL) {
   }
 }
 
-//drush_hook_post_COMMAND
-
-/**
- * Implements drush_COMMAND_init().
- */
-//function drush_psm_stop_init() {}
-
-/**
- * Implements drush_COMMAND_pre_validate().
- */
-//function drush_psm_stop_pre_validate() {}
-
-/**
- * Implements drush_COMMAND_validate().
- */
-//function drush_psm_stop_validate() {}
-
-//drush_hook_pre_COMMAND
-
 /**
  * Implements drush_COMMAND().
  */
@@ -423,67 +340,17 @@ function drush_psm_stop($service_name = NULL, $instance_name = NULL) {
   }
 }
 
-//drush_hook_post_COMMAND
-
-/**
- * Implements drush_COMMAND_init().
- */
-//function drush_psm_reload_init() {}
-
-/**
- * Implements drush_COMMAND_pre_validate().
- */
-//function drush_psm_reload_pre_validate() {}
-
-/**
- * Implements drush_COMMAND_validate().
- */
-//function drush_psm_reload_validate() {}
-
-//drush_hook_pre_COMMAND
-
 /**
  * Implements drush_COMMAND().
  */
 function drush_psm_reload() {
 }
 
-//drush_hook_post_COMMAND
-
-/**
- * Implements drush_COMMAND_init().
- */
-//function drush_psm_restart_init() {}
-
-/**
- * Implements drush_COMMAND_pre_validate().
- */
-//function drush_psm_restart_pre_validate() {}
-
-/**
- * Implements drush_COMMAND_validate().
- */
-//function drush_psm_restart_validate() {}
-
-//drush_hook_pre_COMMAND
-
 /**
  * Implements drush_COMMAND().
  */
 function drush_psm_restart() {
 }
-
-//drush_hook_post_COMMAND
-
-/**
- * Implements drush_COMMAND_init().
- */
-//function drush_psm_groups_init() {}
-
-/**
- * Implements drush_COMMAND_pre_validate().
- */
-//function drush_psm_groups_pre_validate() {}
 
 /**
  * Implements drush_COMMAND_validate().
@@ -493,8 +360,6 @@ function drush_psm_groups_validate($name = NULL) {
     drush_set_error('psm_unknown_group', dt('Group "@name" is not exists.', array('@name' => $name)));
   }
 }
-
-//drush_hook_pre_COMMAND
 
 /**
  * Implements drush_COMMAND().
@@ -518,14 +383,16 @@ function drush_psm_groups($name = NULL) {
   return $output;
 }
 
-//drush_hook_post_COMMAND
-
 /**
+ * Get service definitions.
+ *
  * @param null|string $name
+ *   Service identifier.
  *
  * @throws Exception
  *
  * @return array
+ *   If the $name is omitted then all service.
  */
 function psm_info_service($name = NULL) {
   static $services = NULL;
@@ -562,9 +429,17 @@ function psm_info_service($name = NULL) {
 }
 
 /**
+ * Get the instance definitions.
+ *
+ * @param string|null $name
+ *   Instance identifier.
+ *
+ * @throws Exception
+ *
  * @return array
+ *   Instance definitions.
  */
-function psm_info_instance() {
+function psm_info_instance($name = NULL) {
   static $instances = NULL;
 
   if ($instances === NULL) {
@@ -577,13 +452,29 @@ function psm_info_instance() {
     }
   }
 
+  if ($name) {
+    if (!array_key_exists($name, $instances)) {
+      throw new Exception('Invalid argument', 1);
+    }
+
+    return $instances[$name];
+  }
+
   return $instances;
 }
 
 /**
+ * Get all group definitions.
+ *
+ * @param string|null $name
+ *   Group identifier.
+ *
+ * @throws Exception
+ *
  * @return array
+ *   Group definitions.
  */
-function psm_info_group() {
+function psm_info_group($name = NULL) {
   static $groups = NULL;
 
   if ($groups === NULL) {
@@ -593,16 +484,27 @@ function psm_info_group() {
     }
   }
 
+  if ($name) {
+    if (!array_key_exists($name, $groups)) {
+      throw new Exception('Invalid argument', 1);
+    }
+
+    return $groups[$name];
+  }
+
   return $groups;
 }
 
 /**
- *
+ * Get a instance handler.
  *
  * @param array|string $info
+ *   Service definition.
  * @param string $name
+ *   Instance identifier.
  *
  * @return PsmInstanceInterface
+ *   Instance handler.
  */
 function psm_instance_factory($info, $name = NULL) {
   if (!is_array($info)) {
@@ -617,6 +519,21 @@ function psm_instance_factory($info, $name = NULL) {
   return $class::factory($info);
 }
 
+/**
+ * Collect the instances by variuos filter.
+ *
+ * @param string|null $service_name
+ *   Service identifier.
+ * @param string|null $instance_name
+ *   Instance identifier. Only used with the $service_name.
+ * @param string|null $group_name
+ *   Group identifier. Only used if the $service_name and the $instance_name are
+ *   both omitted.
+ *
+ * @return array
+ *   Multi dimension array with the instance definitions.
+ *   service_name/instance_name/definition.
+ */
 function psm_get_instances($service_name = NULL, $instance_name = NULL, $group_name = NULL) {
   $instances = psm_info_instance();
   if (!$service_name && !$instance_name && $group_name) {
@@ -638,6 +555,16 @@ function psm_get_instances($service_name = NULL, $instance_name = NULL, $group_n
   return $instances;
 }
 
+/**
+ * Filter instances by group name.
+ *
+ * @param string $group_name
+ *   Group identifier.
+ *
+ * @return array
+ *   Multi dimension array with the instance definitions.
+ *   service_name/instance_name/definition.
+ */
 function psm_get_instances_by_group($group_name) {
   $instances_all = psm_info_instance();
   $instances = array();
@@ -653,10 +580,15 @@ function psm_get_instances_by_group($group_name) {
 }
 
 /**
+ * Fill the default values of a service definition.
+ *
  * @param string $service_name
+ *   Service identifier.
  * @param array $info
+ *   Base definition.
  *
  * @return array
+ *   Fully populated service definition.
  */
 function _psm_info_service_defaults($service_name, array $info = array()) {
   $info += array(
@@ -698,10 +630,15 @@ function _psm_info_service_defaults($service_name, array $info = array()) {
 }
 
 /**
+ * Some kind of autoloader.
+ *
  * @param string $class
+ *   Class name to check.
  * @param array $files
+ *   Array of file paths.
  *
  * @return bool
+ *   Class is available or not.
  */
 function _psm_class_exists($class, $files = array()) {
   if (class_exists($class, FALSE)) {
@@ -710,7 +647,7 @@ function _psm_class_exists($class, $files = array()) {
 
   foreach ($files as $file) {
     if (file_exists($file)) {
-      @include_once($file);
+      @include_once $file;
     }
   }
 
@@ -718,9 +655,13 @@ function _psm_class_exists($class, $files = array()) {
 }
 
 /**
+ * Array merge through different drushrc files.
+ *
  * @param string $subject
+ *   Base variable name to merge.
  *
  * @return array
+ *   Array structure is depend on the
  */
 function _psm_config($subject) {
   $return = array();
@@ -728,7 +669,7 @@ function _psm_config($subject) {
   $files = _psm_config_files($subject);
   foreach ($files as $file) {
     $$subject = NULL;
-    $include_result = @include_once($file);
+    $include_result = @include_once $file;
     if ($include_result === FALSE) {
       drush_log(dt('Cannot open drushrc "!config", ignoring.', array('!config' => realpath($file))), 'warning');
       continue;
@@ -748,10 +689,15 @@ function _psm_config($subject) {
 }
 
 /**
+ * Collect the file names.
+ *
  * @param string $subject
+ *   File name prefix.
  * @param string[]|null $paths
+ *   Directories where search the drushrc files in.
  *
  * @return string[]
+ *   File names.
  */
 function _psm_config_files($subject, $paths = NULL) {
   if ($paths === NULL) {
@@ -776,9 +722,13 @@ function _psm_config_files($subject, $paths = NULL) {
 }
 
 /**
+ * Collect the directories where a drushrc file can be.
+ *
  * @param string $subject
+ *   File name prefix.
  *
  * @return string[]
+ *   Array of directory names.
  */
 function _psm_config_paths($subject) {
   return (array) drush_get_context('ALIAS_PATH', array());

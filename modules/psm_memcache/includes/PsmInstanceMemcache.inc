@@ -8,29 +8,85 @@
 /**
  * MemCache instance manager.
  */
-class PsmInstanceMemcache extends PsmInstanceBase {
+class PsmInstanceMemcache extends PsmInstanceBasePid {
 
   /**
-   * @return int
+   * @var string
    */
-  public function status($delay = FALSE) {
-    // @todo: Implement start() method.
-  }
+  protected $versionOption = '-h';
 
-  public function start() {
-    // @todo: Implement start() method.
-  }
+  /**
+   * @return array
+   */
+  protected function getExecutable() {
+    $options = $this->getInfoEntry('executable_options', FALSE, array());
+    $cmd = array($this->getInfoEntry('executable'));
+    foreach ($options as $option_name => $option_value) {
+      // Special handling of the pid file.
+      if ($option_name === 'P' && $option_value) {
+        $option_value = $this->getInfoEntry('pid_file');
+      }
 
-  public function stop() {
-    // @todo: Implement stop() method.
-  }
+      if ($option_value === FALSE || $option_value === NULL) {
+        continue;
+      }
 
-  public function reload() {
-    // @todo: Implement reload() method.
-  }
+      switch ($option_name) {
+        // Key-value.
+        case 'p':
+        case 'U':
+        case 's':
+        case 'a':
+        case 'u':
+        case 'm':
+        case 'c':
+        case 'P':
+        case 'f':
+        case 'n':
+        case 'D':
+        case 't':
+        case 'R':
+        case 'B':
+        case 'I':
+        case 'o':
+          $cmd[0] .= " -$option_name %s";
+          $cmd[] = $option_value;
+          break;
 
-  public function restart() {
-    // @todo: Implement restart() method.
+        // Flag
+        case 'd':
+        case 'r':
+        case 'M':
+        case 'k':
+        case 'v':
+        case 'vv':
+        case 'vvv':
+        case 'L':
+        case 'C':
+        case 'S':
+          $cmd[0] .= " -$option_name";
+          break;
+
+        case 'l':
+          if (is_array($option_value)) {
+            $option_value = implode(',', $option_value);
+          }
+
+          $option_value = trim($option_value);
+
+          if ($option_value) {
+            $cmd[0] .= " -$option_name %s";
+            $cmd[] = $option_value;
+          }
+          break;
+
+
+      }
+    }
+
+    drush_print_r($cmd);
+
+    return $cmd;
   }
 
 }

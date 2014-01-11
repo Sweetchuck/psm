@@ -11,100 +11,51 @@
 /**
  * Nginx server instance manager.
  */
-class PsmInstanceNginx extends PsmInstanceBase {
+class PsmInstanceNginx extends PsmInstanceBasePid {
 
   /**
-   * Configuration reload.
+   * @param int $signal
    *
-   * Start the new worker processes with a new configuration.
-   * Gracefully shutdown the old worker processes.
+   * @return bool|null
+   *
+   * @throws Exception
    */
-  const SIGNAL_RELOAD = 'reload';
-
-  /**
-   * Will stop the Nginx server.
-   */
-  const SIGNAL_STOP = 'stop';
-
-  /**
-   * Graceful shutdown.
-   */
-  const SIGNAL_QUIT = 'quit';
-
-  /**
-   * {@inherit}
-   */
-  public function status($delay = FALSE) {
-    if ($delay === TRUE) {
-      $delay = $this->getStatusDelay();
-    }
-
-    if ($delay) {
-      sleep((int) $delay);
-    }
-
-    return $this->statusByPidFile();
-  }
-
-  /**
-   * {@inherit}
-   */
-  public function start() {
-    $status = $this->status();
-    if ($status) {
-      return $status;
-    }
-
-    if (_drush_shell_exec($this->getExecutable())) {
-      return  $this->status(TRUE);
-    }
-
-    return FALSE;
-  }
-
-  /**
-   * {@inherit}
-   */
-  public function stop() {
-    if (!$this->status()) {
-      return TRUE;
-    }
-
-    return $this->sendSignal(static::SIGNAL_STOP) ?
-      !$this->status(TRUE) : FALSE;
-  }
-
-  /**
-   * {@inherit}
-   */
-  public function reload() {
-    if (!$this->status()) {
-      return FALSE;
-    }
-
-    return $this->sendSignal(static::SIGNAL_RELOAD) ?
-      $this->status(TRUE) : FALSE;
-  }
-
   protected function sendSignal($signal) {
-    return drush_shell_exec($this->getExecutable() . ' -s ' . $signal);
+    $arg = NULL;
+
+    switch ($signal) {
+      case static::SIGNAL_RELOAD:
+        $arg = 'reload';
+        break;
+
+      case static::SIGNAL_STOP:
+      case static::SIGNAL_QUIT:
+        $arg = 'stop';
+        break;
+
+    }
+
+    if (!$arg) {
+      throw new Exception("Invalid argument $signal");
+    }
+
+    return drush_shell_exec($this->getExecutable() . ' -s ' . $arg);
   }
 
+  /**
+   * @return array
+   */
   protected function getExecutable() {
-    $option2alias = array(
-      'p' => 'prefix',
-      'c' => 'config_file',
-      'g' => 'directives',
-    );
-
-    $alias2value = $this->getInfoEntry('executable_options', FALSE, array());
-    $alias2value += array_fill_keys($option2alias, '');
+    $default_options = array('p' => '', 'c' => '', 'g' => '');
+    $options = $this->getInfoEntry('executable_options', FALSE, array());
+    $options += $default_options;
+    $options = array_intersect_key($options, $default_options);
 
     $cmd = array($this->getInfoEntry('executable'));
-    foreach ($option2alias as $option => $alias) {
-      if ($alias2value[$alias]) {
+    foreach ($options as $option => $value) {
+      if ($value) {
         $cmd[0] .= " -{$option} %s";
-        $cmd[] = $alias2value[$alias];
+        $cmd[] = $value;
       }
     }
 

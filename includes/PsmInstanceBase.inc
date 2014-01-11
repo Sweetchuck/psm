@@ -31,59 +31,6 @@ abstract class PsmInstanceBase implements PsmInstanceInterface {
   }
 
   /**
-   * @param string $file_name
-   *
-   * @return int
-   */
-  public static function getPid($file_name) {
-    if (!$file_name || !is_readable($file_name)) {
-      return 0;
-    }
-
-    $pid = trim(file_get_contents($file_name));
-
-    return preg_match('/^\d+$/', $pid) ? (int) $pid : 0;
-  }
-
-  /**
-   * @param int $pid
-   *   Process ID.
-   *
-   * @return bool
-   */
-  public static function isPidRunning($pid) {
-    if (!$pid) {
-      return FALSE;
-    }
-
-    $cmd = sprintf('kill -s 0 %d', $pid);
-    $return_var = NULL;
-    $output = NULL;
-    exec($cmd, $output, $return_var);
-
-    return $return_var === 0;
-  }
-
-  /**
-   * @param int $pid
-   *
-   * @return string|bool
-   */
-  public static function getCmdLine($pid) {
-    if (!$pid) {
-      return FALSE;
-    }
-
-    $file_name = "/proc/$pid/cmdline";
-    if (!is_readable($file_name)) {
-      return FALSE;
-    }
-
-    return (drush_shell_exec("cat $file_name")) ?
-      implode("\n", drush_shell_exec_output()) : FALSE;
-  }
-
-  /**
    * @var array
    */
   protected $info = array();
@@ -219,17 +166,183 @@ abstract class PsmInstanceBase implements PsmInstanceInterface {
   /**
    * @return int
    */
-  protected function statusByPidFile() {
-    $pid = static::getPid($this->getInfoEntry('pid_file'));
+  protected function getStatusDelay() {
+    return $this->getInfoEntry('status_delay', FALSE, static::$defaultStatusDelay);
+  }
 
-    return static::isPidRunning($pid) ? $pid : 0;
+}
+
+/**
+ * Pid based process management.
+ *
+ * Class PsmInstanceBasePid.
+ */
+abstract class PsmInstanceBasePid extends PsmInstanceBase {
+
+  /**
+   * Configuration reload.
+   *
+   * Start the new worker processes with a new configuration.
+   * Gracefully shutdown the old worker processes.
+   */
+  const SIGNAL_RELOAD = 1;
+
+  /**
+   * Will stop the Nginx server.
+   */
+  const SIGNAL_STOP = 2;
+
+  /**
+   * Graceful shutdown.
+   */
+  const SIGNAL_QUIT = 3;
+
+  /**
+   * {@inherit}
+   */
+  public function status($delay = FALSE) {
+    if ($delay === TRUE) {
+      $delay = $this->getStatusDelay();
+    }
+
+    if ($delay) {
+      sleep((int) $delay);
+    }
+
+    return $this->statusByPidFile();
+  }
+
+  /**
+   * {@inherit}
+   */
+  public function start() {
+    $status = $this->status();
+    if ($status) {
+      return $status;
+    }
+
+    if (_drush_shell_exec($this->getExecutable())) {
+      return  $this->status(TRUE);
+    }
+
+    return FALSE;
+  }
+
+  /**
+   * {@inherit}
+   */
+  public function stop() {
+    if (!$this->status()) {
+      return TRUE;
+    }
+
+    return $this->sendSignal(static::SIGNAL_STOP) ?
+      !$this->status(TRUE) : FALSE;
+  }
+
+  /**
+   * {@inherit}
+   */
+  public function reload() {
+    if (!$this->status()) {
+      return FALSE;
+    }
+
+    return $this->sendSignal(static::SIGNAL_RELOAD) ?
+      $this->status(TRUE) : FALSE;
+  }
+
+  /**
+   * @return string
+   */
+  public function getPidFile() {
+    return $this->getInfoEntry('pid_file');
   }
 
   /**
    * @return int
    */
-  protected function getStatusDelay() {
-    return $this->getInfoEntry('status_delay', FALSE, static::$defaultStatusDelay);
+  public function getPid() {
+    $pid_file = $this->getPidFile();
+    if (!$pid_file || !is_readable($pid_file)) {
+      return 0;
+    }
+
+    $pid = trim(file_get_contents($pid_file));
+
+    return preg_match('/^\d+$/', $pid) ? (int) $pid : 0;
+  }
+
+  /**
+   * @return int|bool
+   */
+  public function isPidRunning() {
+    $pid = $this->getPid();
+    if (!$pid) {
+      return FALSE;
+    }
+
+    $cmd = sprintf('kill -s 0 %d', $pid);
+    $return_var = NULL;
+    $output = NULL;
+    exec($cmd, $output, $return_var);
+
+    return $return_var === 0 ? $pid : FALSE;
+  }
+
+  /**
+   * @return string|bool
+   */
+  public function getCmdLine() {
+    $pid = $this->getPid();
+    if (!$pid) {
+      return FALSE;
+    }
+
+    $file_name = "/proc/$pid/cmdline";
+    if (!is_readable($file_name)) {
+      return FALSE;
+    }
+
+    return (drush_shell_exec("cat $file_name")) ?
+      implode("\n", drush_shell_exec_output()) : FALSE;
+  }
+
+  /**
+   * @return int
+   */
+  protected function statusByPidFile() {
+    return $this->isPidRunning();
+  }
+
+  /**
+   * @return array
+   */
+  protected abstract function getExecutable();
+
+  /**
+   * @param int $signal
+   *
+   * @return bool|null
+   */
+  protected function sendSignal($signal) {
+    $executable = $this->getInfoEntry('executable');
+    $pid_file = $this->getPidFile();
+    $result = NULL;
+    switch ($signal) {
+      case static::SIGNAL_RELOAD:
+        // @todo Configurable path to killproc.
+        $result = drush_shell_exec('/sbin/killproc -HUP -p %s %s', $pid_file, $executable);
+        break;
+
+      case static::SIGNAL_QUIT:
+      case static::SIGNAL_STOP:
+        $result = drush_shell_exec('/sbin/killproc -TERM -p %s %s', $pid_file, $executable);
+        break;
+
+    }
+
+    return $result;
   }
 
 }

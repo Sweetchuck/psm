@@ -8,33 +8,40 @@
 /**
  * PhpFpm instance manager.
  */
-class PsmInstancePhpfpm extends PsmInstanceBase {
+class PsmInstancePhpfpm extends PsmInstanceBasePid {
 
   /**
    * {@inherit}
    */
-  public function status($delay = FALSE) {
-    if ($delay === TRUE) {
-      $delay = $this->getStatusDelay();
+  public function stop() {
+    if (!$this->status()) {
+      return TRUE;
     }
 
-    if ($delay) {
-      sleep((int) $delay);
+    if (drush_shell_exec('kill -s 15 %d', static::getPid())) {
+      return !$this->status(TRUE);
     }
 
-    return $this->statusByPidFile();
+    return FALSE;
   }
 
   /**
    * {@inherit}
    */
-  public function start() {
-    $status = $this->status();
-    if ($status) {
-      return $status;
+  public function reload() {
+    if ($this->status()) {
+      if (drush_shell_exec('kill -USR2 %d', static::getPid())) {
+        return $this->status(TRUE);
+      }
     }
 
-    $pid_file = $this->getInfoEntry('pid_file');
+    return FALSE;
+  }
+
+  /**
+   * @return array
+   */
+  protected function getExecutable() {
     $cmd = array($this->getInfoEntry('executable'));
     $options = $this->getExecutableOptions();
 
@@ -62,53 +69,19 @@ class PsmInstancePhpfpm extends PsmInstanceBase {
         case 'g':
           if ($value) {
             $cmd[0] .= ' -g %s';
-            $cmd[] = $pid_file;
+            $cmd[] = $this->getPidFile();
           }
           break;
 
       }
     }
 
-    if (_drush_shell_exec($cmd)) {
-      return $this->status(TRUE);
-    }
-
-    return 0;
+    return $cmd;
   }
 
   /**
-   * {@inherit}
+   * @return array
    */
-  public function stop() {
-    if (!$this->status()) {
-      return TRUE;
-    }
-
-    $cmd = 'kill -s 15 %d';
-    $pid_file = $this->getInfoEntry('pid_file');
-    $pid = static::getPid($pid_file);
-    if (drush_shell_exec($cmd, $pid)) {
-      return !$this->status(TRUE);
-    }
-
-    return FALSE;
-  }
-
-  /**
-   * {@inherit}
-   */
-  public function reload() {
-    if ($this->status()) {
-      $cmd = 'kill -USR2 %d';
-      $pid = static::getPid($this->getInfoEntry('pid_file'));
-      if (drush_shell_exec($cmd, $pid)) {
-        return $this->status(TRUE);
-      }
-    }
-
-    return FALSE;
-  }
-
   protected function getExecutableOptions() {
     $options = $this->getInfoEntry('executable_options', FALSE, array());
     $options += array(

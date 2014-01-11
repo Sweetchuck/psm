@@ -8,19 +8,21 @@
 abstract class PsmInstanceBase implements PsmInstanceInterface {
 
   /**
+   * Array to store the instances.
+   *
    * @var array
    */
   protected static $instances = array();
 
   /**
+   * Seconds to wait before check the status of the instance.
+   *
    * @var int
    */
   protected static $defaultStatusDelay = 0;
 
   /**
-   * @param array $info
-   *
-   * @return PsmInstanceInterface
+   * {@inherit}
    */
   public static function factory(array $info) {
     if (!array_key_exists($info['name'], static::$instances)) {
@@ -31,65 +33,77 @@ abstract class PsmInstanceBase implements PsmInstanceInterface {
   }
 
   /**
+   * Instance definition.
+   *
    * @var array
    */
   protected $info = array();
 
   /**
+   * Command line options after the executable to retrieve an output which is
+   * contains the version number.
+   *
    * @var string
    */
   protected $versionOption = '-v';
 
   /**
+   * Regular expresion to identifi the version number.
+   *
    * @var string
    */
   protected $versionPattern = '/(?P<version>\d[^\s]{0,})/';
 
   /**
+   * Create an instance handler.
+   *
    * @param array $info
+   *   Instance definition.
    */
   protected function __construct(array $info) {
     $this->info = $info;
   }
 
   /**
+   * Get the instance definition.
+   *
    * @return array
+   *   Instance definition.
    */
   public function getInfo() {
     return $this->info;
   }
 
   /**
-   * @return string
+   * {@inherit}
    */
   public function name() {
     return $this->getInfoEntry('name');
   }
 
   /**
-   * @return string
+   * {@inherit}
    */
   public function service() {
     return $this->getInfoEntry('service');
   }
 
   /**
-   * @return string
+   * {@inherit}
    */
   public function label() {
     return $this->getInfoEntry('label');
   }
 
   /**
-   * @return string
+   * {@inherit}
    */
   public function description() {
     return $this->getInfoEntry('description');
   }
 
   /**
-   * @throws Exception
-   * @return string
+   * {@inherit}
    */
   public function version() {
     $cmd = escapeshellcmd($this->getInfoEntry('executable', FALSE));
@@ -141,12 +155,18 @@ abstract class PsmInstanceBase implements PsmInstanceInterface {
   public abstract function reload();
 
   /**
+   * Get an entry from the instance definition.
+   *
    * @param string $key
+   *   Array key.
    * @param bool $required
+   *   Indicate the $key must be exists or not.
    * @param mixed $default
+   *   If the existence is optional the this will be the default value.
    *
    * @throws Exception
    * @return mixed
+   *   Value of the $key.
    */
   protected function getInfoEntry($key, $required = TRUE, $default = NULL) {
     $info = $this->getInfo();
@@ -164,7 +184,10 @@ abstract class PsmInstanceBase implements PsmInstanceInterface {
   }
 
   /**
+   * Get the amount of delay seconds.
+   *
    * @return int
+   *   Amount of seconds.
    */
   protected function getStatusDelay() {
     return $this->getInfoEntry('status_delay', FALSE, static::$defaultStatusDelay);
@@ -253,14 +276,20 @@ abstract class PsmInstanceBasePid extends PsmInstanceBase {
   }
 
   /**
+   * Get the file path of the PID file.
+   *
    * @return string
+   *   File system path to PID file.
    */
   public function getPidFile() {
     return $this->getInfoEntry('pid_file');
   }
 
   /**
+   * Get the process ID.
+   *
    * @return int
+   *   The process ID.
    */
   public function getPid() {
     $pid_file = $this->getPidFile();
@@ -274,7 +303,10 @@ abstract class PsmInstanceBasePid extends PsmInstanceBase {
   }
 
   /**
+   * Check the process is running or not.
+   *
    * @return int|bool
+   *   The process ID or FALSE.
    */
   public function isPidRunning() {
     $pid = $this->getPid();
@@ -291,7 +323,10 @@ abstract class PsmInstanceBasePid extends PsmInstanceBase {
   }
 
   /**
+   * Get the executed command.
+   *
    * @return string|bool
+   *   Command.
    */
   public function getCmdLine() {
     $pid = $this->getPid();
@@ -309,21 +344,34 @@ abstract class PsmInstanceBasePid extends PsmInstanceBase {
   }
 
   /**
+   * Check the status of the instance by the PID file.
+   *
+   * @deprecated Use directly the isPidRunning() method.
+   *
    * @return int
+   *   Process ID.
    */
   protected function statusByPidFile() {
     return $this->isPidRunning();
   }
 
   /**
+   * Get the command to start the instance.
+   *
    * @return array
+   *   Zero based numeric indexed array. The array is suitable for the
+   *   _drush_shell_exec().
    */
   protected abstract function getExecutable();
 
   /**
+   * Basic process handler.
+   *
    * @param int $signal
+   *   Reload, stop.
    *
    * @return bool|null
+   *   Status of the command execution.
    */
   protected function sendSignal($signal) {
     $executable = $this->getInfoEntry('executable');

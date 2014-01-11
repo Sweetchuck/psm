@@ -14,11 +14,7 @@
 class PsmInstanceNginx extends PsmInstanceBasePid {
 
   /**
-   * @param int $signal
-   *
-   * @return bool|null
-   *
-   * @throws Exception
+   * {@inherit}
    */
   protected function sendSignal($signal) {
     $arg = NULL;
@@ -43,7 +39,7 @@ class PsmInstanceNginx extends PsmInstanceBasePid {
   }
 
   /**
-   * @return array
+   * {@inherit}
    */
   protected function getExecutable() {
     $default_options = array('p' => '', 'c' => '', 'g' => '');

@@ -1,49 +1,74 @@
 <?php
+
 /**
  * @file
- *
+ * home of the PsmInstanceInterface interface.
  */
 
 interface PsmInstanceInterface {
 
   /**
+   * Get instance handler objects.
+   *
    * @param array $info
+   *   Instance info array.
    *
    * @return PsmInstanceInterface
+   *   Instance handler object.
    */
-  static function factory(array $info);
+  public static function factory(array $info);
 
   /**
+   * Get instance definition.
+   *
    * @return array
+   *   Instance definition.
    */
   public function getInfo();
 
   /**
+   * Get instance name. This is a unique identifier in the service namespace.
+   *
    * @return string
+   *   Instance name.
    */
   public function name();
 
   /**
+   * Get service name.
+   *
    * @return string
+   *   Service identifier.
    */
   public function service();
 
   /**
+   * Get the human readable name of the service.
+   *
    * @return string
+   *   Human readable name of the service.
    */
   public function label();
 
   /**
+   * Get description of the instance.
+   *
    * @return string
+   *   Description of the instance.
    */
   public function description();
 
   /**
+   * Get the version number of the service.
+   *
    * @return string
+   *   Version of the service.
    */
   public function version();
 
   /**
+   * Get the status of the instance.
+   *
    * @param int|bool $delay
    *   FALSE means no delay.
    *   TRUE means default amount of delay.
@@ -51,12 +76,14 @@ interface PsmInstanceInterface {
    *   Wait $delay seconds before check the status.
    *
    * @return int|bool
-   *   If the service is running the process ID if available or TRUE otherwise
+   *   If the instance is running the process ID if available or TRUE otherwise
    *   zero or FALSE.
    */
   public function status($delay = FALSE);
 
   /**
+   * Start the instance.
+   *
    * @return int|bool
    *   If the service is running the process ID if available or TRUE otherwise
    *   zero or FALSE.
@@ -64,12 +91,16 @@ interface PsmInstanceInterface {
   public function start();
 
   /**
+   * Stop the instance.
+   *
    * @return bool
    *   TRUE if the service is not running otherwise FALSE.
    */
   public function stop();
 
   /**
+   * Restart the instance.
+   *
    * @return int|bool
    *   If the service is running the process ID if available or TRUE otherwise
    *   zero or FALSE.
@@ -77,6 +108,8 @@ interface PsmInstanceInterface {
   public function restart();
 
   /**
+   * Reload the configuration of the instance.
+   *
    * @return int|bool
    *   If the service is running the process ID if available or TRUE otherwise
    *   zero or FALSE.

@@ -39,7 +39,7 @@ class PsmInstancePhpfpm extends PsmInstanceBasePid {
   }
 
   /**
-   * @return array
+   * {@inherit}
    */
   protected function getExecutable() {
     $cmd = array($this->getInfoEntry('executable'));
@@ -80,7 +80,10 @@ class PsmInstancePhpfpm extends PsmInstanceBasePid {
   }
 
   /**
+   * Get the executable options with default values.
+   *
    * @return array
+   *   Array of command options.
    */
   protected function getExecutableOptions() {
     $options = $this->getInfoEntry('executable_options', FALSE, array());

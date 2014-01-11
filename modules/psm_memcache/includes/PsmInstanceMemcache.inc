@@ -16,7 +16,7 @@ class PsmInstanceMemcache extends PsmInstanceBasePid {
   protected $versionOption = '-h';
 
   /**
-   * @return array
+   * {@inherit}
    */
   protected function getExecutable() {
     $options = $this->getInfoEntry('executable_options', FALSE, array());
@@ -53,7 +53,7 @@ class PsmInstanceMemcache extends PsmInstanceBasePid {
           $cmd[] = $option_value;
           break;
 
-        // Flag
+        // Flag.
         case 'd':
         case 'r':
         case 'M':
@@ -83,8 +83,6 @@ class PsmInstanceMemcache extends PsmInstanceBasePid {
 
       }
     }
-
-    drush_print_r($cmd);
 
     return $cmd;
   }

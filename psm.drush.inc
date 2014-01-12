@@ -969,8 +969,7 @@ function _psm_camel_case($name) {
 function _psm_config($subject) {
   $return = array();
 
-  $files = _psm_config_files($subject);
-  foreach ($files as $file) {
+  foreach (_psm_config_files($subject) as $file) {
     $$subject = NULL;
     $include_result = @include_once $file;
     if ($include_result === FALSE) {

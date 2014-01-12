@@ -55,11 +55,18 @@ abstract class InstanceBase implements InstanceInterface {
   protected $versionOption = '-v';
 
   /**
-   * Regular expresion to identifi the version number.
+   * Regular expression to identify the version number.
    *
    * @var string
    */
   protected $versionPattern = '/(?P<version>\d[^\s]{0,})/';
+
+  /**
+   * Cached version number.
+   *
+   * @var string
+   */
+  protected $versionNumber = NULL;
 
   /**
    * Create an instance handler.
@@ -120,23 +127,26 @@ abstract class InstanceBase implements InstanceInterface {
    * {@inherit}
    */
   public function version() {
-    $cmd = escapeshellcmd($this->getInfoEntry('executable', FALSE));
-    if ($cmd && $this->versionOption !== NULL) {
-      if (!is_executable($cmd)) {
-        throw new Exception('Not executable: ' . $cmd, 1);
-      }
+    if ($this->versionNumber === NULL) {
+      $this->versionNumber = '';
+      $cmd = escapeshellcmd($this->getInfoEntry('executable', FALSE));
+      if ($cmd && $this->versionOption !== NULL) {
+        if (!is_executable($cmd)) {
+          throw new \Exception('Not executable: ' . $cmd, 1);
+        }
 
-      $cmd .= ' ' . $this->versionOption;
-      if (drush_shell_exec($cmd)) {
-        $output = implode("\n", drush_shell_exec_output());
-        $matches = array('version' => '');
-        preg_match($this->versionPattern, $output, $matches);
+        $cmd .= ' ' . $this->versionOption;
+        if (drush_shell_exec($cmd)) {
+          $output = implode("\n", (array) drush_shell_exec_output());
+          $matches = array('version' => '');
+          preg_match($this->versionPattern, $output, $matches);
 
-        return $matches['version'];
+          $this->versionNumber = $matches['version'];
+        }
       }
     }
 
-    return '';
+    return $this->versionNumber;
   }
 
   /**

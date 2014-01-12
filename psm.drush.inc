@@ -188,11 +188,84 @@ function psm_drush_command() {
 }
 
 /**
+ * Implements hook_drush_help().
+ */
+function psm_drush_help($subject = NULL) {
+  $subject_args = explode(':', $subject);
+  $subject = array_shift($subject_args);
+  if ($subject_args) {
+    $subject .= ':' . array_shift($subject_args);
+  }
+
+  $help = array();
+  switch ($subject) {
+    case 'error:psm_autoload_missing':
+      $help[] = dt('Failed to load the autoloader.');
+      $command_files = drush_commandfile_list();
+      $help[] = dt('Try to run the `./init.sh` in the "@dir" directory.', array(
+          '@dir' => dirname($command_files['psm']),
+        ));
+      break;
+
+    case 'error:psm_service_unknown':
+      $help[] = dt('Service "@name" is not exists.', array('@name' => $subject_args[0]));
+      $help[] = dt('Try to run the `drush psm-services`.');
+      break;
+
+    case 'error:psm_instance_unknown':
+      $help[] = dt('Instance "@service:@instance" is not exists.', array(
+        '@service' => $subject_args[0],
+        '@instance' => $subject_args[1],
+      ));
+      $help[] = dt('Try to run the `drush psm-instances`.');
+      break;
+
+    case 'error:psm_group_unknown':
+      $help[] = dt('Group "@name" is not exists.', array(
+        '@name' => $subject_args[0],
+      ));
+      $help[] = dt('Try to run the `drush psm-groups`.');
+      break;
+
+    case 'error:psm_instance_start':
+      $help[] = dt('Service @service:@instance failed to start.', array(
+        '@service' => $subject_args[0],
+        '@instance' => $subject_args[1],
+      ));
+      break;
+
+    case 'error:psm_instance_stop':
+      $help[] = dt('Service @service:@instance failed to stop.', array(
+        '@service' => $subject_args[0],
+        '@instance' => $subject_args[1],
+      ));
+      break;
+
+    case 'error:psm_instance_reload':
+      $help[] = dt('Service @service:@instance failed to reload.', array(
+        '@service' => $subject_args[0],
+        '@instance' => $subject_args[1],
+      ));
+      break;
+
+    case 'error:psm_instance_restart':
+      $help[] = dt('Service @service:@instance failed to restart.', array(
+        '@service' => $subject_args[0],
+        '@instance' => $subject_args[1],
+      ));
+      break;
+
+  }
+
+  return implode("\n", $help);
+}
+
+/**
  * Implements drush_COMMAND_validate().
  */
 function drush_psm_services_validate($name = NULL) {
   if ($name && !array_key_exists($name, psm_info_service())) {
-    drush_set_error('psm_unknown_service', dt('Service "@name" is not exists.', array('@name' => $name)));
+    drush_set_error("psm_service_unknown:$name");
   }
 }
 
@@ -225,18 +298,12 @@ function drush_psm_services($name = NULL) {
 function drush_psm_instances_validate($service_name = NULL, $instance_name = NULL) {
   if ($service_name) {
     if (!array_key_exists($service_name, psm_info_service())) {
-      drush_set_error('psm_unknown_service', dt('Service "@name" is not exists.', array('@name' => $service_name)));
+      drush_set_error("psm_service_unknown:$service_name");
     }
     elseif ($instance_name) {
       $instances = psm_info_instance();
       if (array_key_exists($service_name, $instances) && !array_key_exists($instance_name, $instances[$service_name])) {
-        drush_set_error('psm_unknown_instance', dt(
-          'Instance "@service:@instance" is not exists.',
-          array(
-            '@service' => $service_name,
-            '@instance' => $instance_name,
-          )
-        ));
+        drush_set_error("psm_instance_unknown:$service_name:$instance_name");
       }
     }
   }
@@ -249,7 +316,7 @@ function drush_psm_instances_validate($service_name = NULL, $instance_name = NUL
 
     $groups = psm_info_group();
     if (!array_key_exists($group_name, $groups)) {
-      drush_set_error('psm_unknown_group', dt('Group "@name" is not exists.', array('@name' => $group_name)));
+      drush_set_error("psm_group_unknown:$group_name");
     }
   }
 }
@@ -338,10 +405,7 @@ function drush_psm_start($service_name = NULL, $instance_name = NULL) {
       );
 
       if (!$output[$id]['status']) {
-        drush_set_error(
-          'psm_instance_start',
-          dt('Service start failed: @id', array('@id' => $id))
-        );
+        drush_set_error("psm_instance_start:{$output[$id]['service']}:{$output[$id]['name']}");
       }
     }
   }
@@ -375,10 +439,7 @@ function drush_psm_stop($service_name = NULL, $instance_name = NULL) {
       );
 
       if ($output[$id]['status']) {
-        drush_set_error(
-          'psm_instance_stop',
-          dt('Service @id failed to stop.', array('@id' => $id))
-        );
+        drush_set_error("psm_instance_stop:{$output[$id]['service']}:{$output[$id]['name']}");
       }
     }
   }
@@ -412,10 +473,7 @@ function drush_psm_reload($service_name = NULL, $instance_name = NULL) {
       );
 
       if (!$output[$id]['status']) {
-        drush_set_error(
-          'psm_instance_reload',
-          dt('Service @id failed to reload.', array('@id' => $id))
-        );
+        drush_set_error("psm_instance_reload:{$output[$id]['service']}:{$output[$id]['name']}");
       }
     }
   }
@@ -449,10 +507,7 @@ function drush_psm_restart($service_name = NULL, $instance_name = NULL) {
       );
 
       if (!$output[$id]['status']) {
-        drush_set_error(
-          'psm_instance_reload',
-          dt('Service @id failed to restart.', array('@id' => $id))
-        );
+        drush_set_error("psm_instance_restart:{$output[$id]['service']}:{$output[$id]['name']}");
       }
     }
   }
@@ -465,7 +520,7 @@ function drush_psm_restart($service_name = NULL, $instance_name = NULL) {
  */
 function drush_psm_groups_validate($name = NULL) {
   if ($name && !array_key_exists($name, psm_info_group())) {
-    drush_set_error('psm_unknown_group', dt('Group "@name" is not exists.', array('@name' => $name)));
+    drush_set_error("psm_group_unknown:$name");
   }
 }
 
@@ -644,7 +699,15 @@ function psm_info_service($name = NULL) {
     // Register the lib dir to autoloader.
     $command_files = drush_commandfile_list();
     $command_file_dir = dirname($command_files['psm']);
-    $loader = require "$command_file_dir/vendor/autoload.php";
+
+    try {
+      $loader = require "$command_file_dir/vendor/autoload.php";
+    }
+    catch (Exception $e) {
+      drush_set_error('psm_autoload_missing');
+
+      return array();
+    }
 
     foreach (array_keys($services) as $service_name) {
       $services[$service_name]['name'] = $service_name;

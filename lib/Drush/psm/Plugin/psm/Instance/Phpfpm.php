@@ -5,10 +5,14 @@
  * Home of the Php-Fpm instance manager class.
  */
 
+namespace Drush\psm\Plugin\psm\Instance;
+
+use Drush\psm\InstanceBasePid;
+
 /**
  * PhpFpm instance manager.
  */
-class PsmInstancePhpfpm extends PsmInstanceBasePid {
+class Phpfpm extends InstanceBasePid {
 
   /**
    * {@inherit}

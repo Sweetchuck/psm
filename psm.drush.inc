@@ -384,6 +384,47 @@ function drush_psm_groups($name = NULL) {
 }
 
 /**
+ * Implements hook_psm_service_info().
+ */
+function psm_psm_service_info() {
+  $info = array();
+
+  $info['memcache'] = array(
+    'label' => dt('MemCache'),
+    'description' => dt('Free & open source, high-performance, distributed memory object caching system.'),
+    'links' => array(
+      'http://memcached.org',
+    ),
+  );
+
+  $info['nginx'] = array(
+    'label' => dt('Nginx'),
+    'description' => dt('nginx [engine x] is an HTTP and reverse proxy server, as well as a mail proxy server, written by Igor Sysoev.'),
+    'links' => array(
+      'http://nginx.org',
+    ),
+  );
+
+  $info['phpfpm'] = array(
+    'label' => dt('PhpFpm'),
+    'description' => dt('FPM (FastCGI Process Manager) is an alternative PHP FastCGI implementation with some additional features (mostly) useful for heavy-loaded sites.'),
+    'links' => array(
+      'http://www.php.net/manual/en/install.fpm.php',
+    ),
+  );
+
+  $info['selenium'] = array(
+    'label' => dt('Selenium'),
+    'description' => dt('Primarily it is for automating web applications for testing purposes, but is certainly not limited to just that.'),
+    'links' => array(
+      'http://docs.seleniumhq.org',
+    ),
+  );
+
+  return $info;
+}
+
+/**
  * Get service definitions.
  *
  * @param null|string $name
@@ -398,22 +439,32 @@ function psm_info_service($name = NULL) {
   static $services = NULL;
 
   if ($services === NULL) {
-    $services = drush_command_invoke_all('drush_psm_service_info');
+    // Collect the service definitions.
+    $services = drush_command_invoke_all('psm_service_info');
 
+    // Fill the default values.
     foreach (array_keys($services) as $service_name) {
       $service =& $services[$service_name];
       $service = _psm_info_service_defaults($service_name, $service);
     }
 
-    drush_command_invoke_all('drush_psm_service_info_alter', $services);
+    // Allow to other modules to alter the service definitions.
+    drush_command_invoke_all('psm_service_info_alter', $services);
+
+    // Register the lib dir to autoloader.
+    $command_files = drush_commandfile_list();
+    $command_file_dir = dirname($command_files['psm']);
+    $loader = require "$command_file_dir/vendor/autoload.php";
 
     foreach (array_keys($services) as $service_name) {
-      if (!_psm_class_exists($services[$service_name]['class'], $services[$service_name]['files'])) {
-        unset($services[$service_name]);
-        continue;
-      }
-
       $services[$service_name]['name'] = $service_name;
+
+      if (!empty($service['lib_dir'])) {
+        $prefixes = $loader->getPrefixes();
+        if (!isset($prefixes['Drush']) || !in_array($service['lib_dir'], $prefixes['Drush'])) {
+          $loader->add('Drush', $service['lib_dir']);
+        }
+      }
     }
   }
 
@@ -592,9 +643,9 @@ function psm_get_instances_by_group($group_name) {
  */
 function _psm_info_service_defaults($service_name, array $info = array()) {
   $info += array(
-    // Provider module.
+    // Provider command file.
     // Required.
-    'command_file' => "psm_$service_name",
+    'command_file' => 'psm',
     // Machine name of the service.
     // Required, but force populated later.
     'name' => $service_name,
@@ -605,24 +656,30 @@ function _psm_info_service_defaults($service_name, array $info = array()) {
     // Optional.
     'description' => NULL,
 
-    'files' => array(),
+    'lib_dir' => NULL,
     'class' => '',
   );
 
-  $class = 'PsmInstance' . strtoupper(substr($service_name, 0, 1)) . substr($service_name, 1);
   if (empty($info['class'])) {
-    $info['class'] = $class;
+    $info['class'] = '\\' . implode('\\', array(
+      'Drush',
+      $info['command_file'],
+      'Plugin',
+      'psm',
+      'Instance',
+      _psm_camel_case($service_name),
+    ));
   }
 
-  if (empty($info['files']) && $info['command_file']) {
+  if (empty($info['lib_dir']) && $info['command_file']) {
     $command_files = drush_commandfile_list();
-    $self_dir = dirname($command_files['psm']);
     $command_file_dir = dirname($command_files[$info['command_file']]);
-    $file = "$command_file_dir/includes/{$info['class']}.inc";
-    if (file_exists($file)) {
-      $info['files'][] = "$self_dir/includes/PsmInstanceInterface.inc";
-      $info['files'][] = "$self_dir/includes/PsmInstanceBase.inc";
-      $info['files'][] = $file;
+
+    if (is_dir("$command_file_dir/lib")) {
+      $info['lib_dir'] = "$command_file_dir/lib";
+    }
+    elseif (strrpos($command_file_dir, '/includes') && is_dir("$command_file_dir/../lib")) {
+      $info['lib_dir'] = "$command_file_dir/../lib";
     }
   }
 
@@ -630,28 +687,20 @@ function _psm_info_service_defaults($service_name, array $info = array()) {
 }
 
 /**
- * Some kind of autoloader.
+ * Transform a snake case machine name to camel case.
  *
- * @param string $class
- *   Class name to check.
- * @param array $files
- *   Array of file paths.
+ * @param string $name
+ *   String in snake case.
  *
- * @return bool
- *   Class is available or not.
+ * @return string
+ *   Camel case string.
  */
-function _psm_class_exists($class, $files = array()) {
-  if (class_exists($class, FALSE)) {
-    return TRUE;
-  }
+function _psm_camel_case($name) {
+  $camel_case = function ($matches) {
+    return strtoupper(trim($matches[0], '_'));
+  };
 
-  foreach ($files as $file) {
-    if (file_exists($file)) {
-      @include_once $file;
-    }
-  }
-
-  return class_exists($class, FALSE);
+  return preg_replace_callback('/(^|_)./', $camel_case, $name);
 }
 
 /**

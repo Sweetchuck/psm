@@ -5,10 +5,14 @@
  * Home of the MemCache instance manager class.
  */
 
+namespace Drush\psm\Plugin\psm\Instance;
+
+use Drush\psm\InstanceBasePid;
+
 /**
  * MemCache instance manager.
  */
-class PsmInstanceMemcache extends PsmInstanceBasePid {
+class Memcache extends InstanceBasePid {
 
   /**
    * @var string

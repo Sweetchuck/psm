@@ -8,10 +8,14 @@
  * @see http://wiki.nginx.org/CommandLine
  */
 
+namespace Drush\psm\Plugin\psm\Instance;
+
+use Drush\psm\InstanceBasePid;
+
 /**
  * Nginx server instance manager.
  */
-class PsmInstanceNginx extends PsmInstanceBasePid {
+class Nginx extends InstanceBasePid {
 
   /**
    * {@inherit}
@@ -32,7 +36,7 @@ class PsmInstanceNginx extends PsmInstanceBasePid {
     }
 
     if (!$arg) {
-      throw new Exception("Invalid argument $signal");
+      throw new \Exception("Invalid argument $signal");
     }
 
     return drush_shell_exec($this->getExecutable() . ' -s ' . $arg);

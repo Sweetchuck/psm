@@ -5,6 +5,6 @@
  * Documentation missing.
  */
 
-function hook_drush_psm_service_info() {
+function hook_psm_service_info() {
   // @todo.
 }

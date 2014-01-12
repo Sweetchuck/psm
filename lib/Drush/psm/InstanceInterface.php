@@ -5,7 +5,14 @@
  * home of the PsmInstanceInterface interface.
  */
 
-interface PsmInstanceInterface {
+namespace Drush\psm;
+
+/**
+ * Interface InstanceInterface
+ *
+ * @package Drush\psm
+ */
+interface InstanceInterface {
 
   /**
    * Get instance handler objects.
@@ -13,7 +20,7 @@ interface PsmInstanceInterface {
    * @param array $info
    *   Instance info array.
    *
-   * @return PsmInstanceInterface
+   * @return InstanceInterface
    *   Instance handler object.
    */
   public static function factory(array $info);

@@ -44,7 +44,7 @@ abstract class InstanceBasePid extends InstanceBase {
       sleep((int) $delay);
     }
 
-    return $this->statusByPidFile();
+    return $this->isPidRunning();
   }
 
   /**

@@ -125,6 +125,18 @@ function psm_drush_command() {
         'hidden' => FALSE,
       ),
     ),
+    'engines' => array(
+      'outputformat' => array(
+        'default' => 'table',
+        'pipe-format' => 'list',
+        'field-labels' => array(
+          'service' => dt('Service'),
+          'name' => dt('Name'),
+          'status' => dt('Status'),
+        ),
+        'output-data-type' => 'format-table',
+      ),
+    ),
   );
 
   $commands['psm-status'] = array(
@@ -272,26 +284,39 @@ function drush_psm_instances($service_name = NULL, $instance_name = NULL) {
 }
 
 /**
+ * Implements drush_COMMAND_validate().
+ */
+function drush_psm_status_validate($service_name = NULL, $instance_name = NULL) {
+  drush_psm_instances_validate($service_name, $instance_name);
+}
+
+/**
  * Implements drush_COMMAND().
  */
 function drush_psm_status($service_name = NULL, $instance_name = NULL) {
   $group_name = drush_get_option('group', NULL);
 
   $instances = psm_get_instances($service_name, $instance_name, $group_name);
-  $services = psm_info_service();
-  foreach ($instances as $service_name => $instance_list) {
-    $service = $services[$service_name];
+  $output = array();
+  foreach ($instances as $instance_list) {
     foreach ($instance_list as $info) {
       $instance = psm_instance_factory($info);
-      $label = $service['label'] . ':' . $instance->label();
-      if ($instance->status()) {
-        drush_log($label, 'success');
-      }
-      else {
-        drush_log($label, 'error');
-      }
+      $output[$instance->id()] = array(
+        'service' => $instance->service(),
+        'name' => $instance->name(),
+        'status' => $instance->status(),
+      );
     }
   }
+
+  return $output;
+}
+
+/**
+ * Implements drush_COMMAND_validate().
+ */
+function drush_psm_start_validate($service_name = NULL, $instance_name = NULL) {
+  drush_psm_instances_validate($service_name, $instance_name);
 }
 
 /**
@@ -301,20 +326,34 @@ function drush_psm_start($service_name = NULL, $instance_name = NULL) {
   $group_name = drush_get_option('group', NULL);
 
   $instances = psm_get_instances($service_name, $instance_name, $group_name);
-  $services = psm_info_service();
-  foreach ($instances as $service_name => $instance_list) {
-    $service = $services[$service_name];
+  $output = array();
+  foreach ($instances as $instance_list) {
     foreach ($instance_list as $info) {
       $instance = psm_instance_factory($info);
-      $label = $service['label'] . ':' . $instance->label();
-      if ($instance->start()) {
-        drush_log($label, 'success');
-      }
-      else {
-        drush_log($label, 'error');
+      $id = $instance->id();
+      $output[$id] = array(
+        'service' => $instance->service(),
+        'name' => $instance->name(),
+        'status' => $instance->start(),
+      );
+
+      if (!$output[$id]['status']) {
+        drush_set_error(
+          'psm_instance_start',
+          dt('Service start failed: @id', array('@id' => $id))
+        );
       }
     }
   }
+
+  return $output;
+}
+
+/**
+ * Implements drush_COMMAND_validate().
+ */
+function drush_psm_stop_validate($service_name = NULL, $instance_name = NULL) {
+  drush_psm_instances_validate($service_name, $instance_name);
 }
 
 /**
@@ -324,32 +363,101 @@ function drush_psm_stop($service_name = NULL, $instance_name = NULL) {
   $group_name = drush_get_option('group', NULL);
 
   $instances = psm_get_instances($service_name, $instance_name, $group_name);
-  $services = psm_info_service();
-  foreach ($instances as $service_name => $instance_list) {
-    $service = $services[$service_name];
+  $output = array();
+  foreach ($instances as $instance_list) {
     foreach ($instance_list as $info) {
       $instance = psm_instance_factory($info);
-      $label = $service['label'] . ':' . $instance->label();
-      if ($instance->stop()) {
-        drush_log($label, 'success');
-      }
-      else {
-        drush_log($label, 'error');
+      $id = $instance->id();
+      $output[$id] = array(
+        'service' => $instance->service(),
+        'name' => $instance->name(),
+        'status' => !$instance->stop(),
+      );
+
+      if ($output[$id]['status']) {
+        drush_set_error(
+          'psm_instance_stop',
+          dt('Service @id failed to stop.', array('@id' => $id))
+        );
       }
     }
   }
+
+  return $output;
+}
+
+/**
+ * Implements drush_COMMAND_validate().
+ */
+function drush_psm_reload_validate($service_name = NULL, $instance_name = NULL) {
+  drush_psm_instances_validate($service_name, $instance_name);
 }
 
 /**
  * Implements drush_COMMAND().
  */
-function drush_psm_reload() {
+function drush_psm_reload($service_name = NULL, $instance_name = NULL) {
+  $group_name = drush_get_option('group', NULL);
+
+  $instances = psm_get_instances($service_name, $instance_name, $group_name);
+  $output = array();
+  foreach ($instances as $instance_list) {
+    foreach ($instance_list as $info) {
+      $instance = psm_instance_factory($info);
+      $id = $instance->id();
+      $output[$id] = array(
+        'service' => $instance->service(),
+        'name' => $instance->name(),
+        'status' => $instance->reload(),
+      );
+
+      if (!$output[$id]['status']) {
+        drush_set_error(
+          'psm_instance_reload',
+          dt('Service @id failed to reload.', array('@id' => $id))
+        );
+      }
+    }
+  }
+
+  return $output;
+}
+
+/**
+ * Implements drush_COMMAND_validate().
+ */
+function drush_psm_restart_validate($service_name = NULL, $instance_name = NULL) {
+  drush_psm_instances_validate($service_name, $instance_name);
 }
 
 /**
  * Implements drush_COMMAND().
  */
-function drush_psm_restart() {
+function drush_psm_restart($service_name = NULL, $instance_name = NULL) {
+  $group_name = drush_get_option('group', NULL);
+
+  $instances = psm_get_instances($service_name, $instance_name, $group_name);
+  $output = array();
+  foreach ($instances as $instance_list) {
+    foreach ($instance_list as $info) {
+      $instance = psm_instance_factory($info);
+      $id = $instance->id();
+      $output[$id] = array(
+        'service' => $instance->service(),
+        'name' => $instance->name(),
+        'status' => $instance->restart(),
+      );
+
+      if (!$output[$id]['status']) {
+        drush_set_error(
+          'psm_instance_reload',
+          dt('Service @id failed to restart.', array('@id' => $id))
+        );
+      }
+    }
+  }
+
+  return $output;
 }
 
 /**
@@ -636,7 +744,7 @@ function psm_info_group($name = NULL) {
  * @param string $name
  *   Instance identifier.
  *
- * @return PsmInstanceInterface
+ * @return \Drush\psm\InstanceInterface
  *   Instance handler.
  */
 function psm_instance_factory($info, $name = NULL) {
@@ -645,15 +753,19 @@ function psm_instance_factory($info, $name = NULL) {
     $info = $instances[$info][$name];
   }
 
-  $service = psm_info_service($info['service']);
-
-  $class = $service['class'];
+  if (!empty($info['class'])) {
+    $class = $info['class'];
+  }
+  else {
+    $service = psm_info_service($info['service']);
+    $class = $service['class'];
+  }
 
   return $class::factory($info);
 }
 
 /**
- * Collect the instances by variuos filter.
+ * Collect the instances by various filter.
  *
  * @param string|null $service_name
  *   Service identifier.

@@ -98,6 +98,13 @@ abstract class InstanceBase implements InstanceInterface {
   /**
    * {@inherit}
    */
+  public function id() {
+    return $this->service() . '.' . $this->name();
+  }
+
+  /**
+   * {@inherit}
+   */
   public function label() {
     return $this->getInfoEntry('label');
   }

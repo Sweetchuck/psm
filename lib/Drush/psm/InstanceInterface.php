@@ -50,6 +50,14 @@ interface InstanceInterface {
   public function service();
 
   /**
+   * Get the instance ID.
+   *
+   * @return string
+   *   The service name and the instance name separated by dot.
+   */
+  public function id();
+
+  /**
    * Get the human readable name of the service.
    *
    * @return string

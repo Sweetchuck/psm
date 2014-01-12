@@ -18,11 +18,12 @@ class Phpfpm extends InstanceBasePid {
    * {@inherit}
    */
   public function stop() {
-    if (!$this->status()) {
+    $pid = $this->status();
+    if (!$pid) {
       return TRUE;
     }
 
-    if (drush_shell_exec('kill -s 15 %d', static::getPid())) {
+    if (drush_shell_exec('kill -s 15 %d', $pid)) {
       return !$this->status(TRUE);
     }
 
@@ -33,8 +34,9 @@ class Phpfpm extends InstanceBasePid {
    * {@inherit}
    */
   public function reload() {
-    if ($this->status()) {
-      if (drush_shell_exec('kill -USR2 %d', static::getPid())) {
+    $pid = $this->status();
+    if ($pid) {
+      if (drush_shell_exec('kill -USR2 %d', $pid)) {
         return $this->status(TRUE);
       }
     }

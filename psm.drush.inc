@@ -389,16 +389,50 @@ function drush_psm_groups($name = NULL) {
 function psm_psm_service_info() {
   $info = array();
 
+  $info['apache'] = array(
+    'label' => 'Apache',
+    'description' => dt('The Apache HTTP Server Project is a collaborative software development effort aimed at creating a robust, commercial-grade, featureful, and freely-available source code implementation of an HTTP (Web) server.'),
+    'links' => array(
+      'http://httpd.apache.org',
+    ),
+  );
+
+  $info['jenkins'] = array(
+    'label' => 'Jenkins',
+    'description' => dt('An extendable open source continuous integration server.'),
+    'links' => array(
+      'http://jenkins-ci.org',
+    ),
+  );
+
   $info['memcache'] = array(
-    'label' => dt('MemCache'),
+    'label' => 'MemCache',
     'description' => dt('Free & open source, high-performance, distributed memory object caching system.'),
     'links' => array(
       'http://memcached.org',
     ),
   );
 
+  $info['mongodb'] = array(
+    'label' => 'MongoDB',
+    'description' => dt('MongoDB (from "humongous") is an open-source document database, and the leading NoSQL database. Written in C++.'),
+    'links' => array(
+      'http://www.mongodb.org',
+    ),
+  );
+
+  $info['mysql'] = array(
+    'label' => 'MySQL',
+    'description' => dt("The world's most popular open source database."),
+    'links' => array(
+      'http://www.mysql.com',
+      'http://www.percona.com',
+      'https://mariadb.org',
+    ),
+  );
+
   $info['nginx'] = array(
-    'label' => dt('Nginx'),
+    'label' => 'Nginx',
     'description' => dt('nginx [engine x] is an HTTP and reverse proxy server, as well as a mail proxy server, written by Igor Sysoev.'),
     'links' => array(
       'http://nginx.org',
@@ -406,18 +440,66 @@ function psm_psm_service_info() {
   );
 
   $info['phpfpm'] = array(
-    'label' => dt('PhpFpm'),
+    'label' => 'PhpFpm',
     'description' => dt('FPM (FastCGI Process Manager) is an alternative PHP FastCGI implementation with some additional features (mostly) useful for heavy-loaded sites.'),
     'links' => array(
       'http://www.php.net/manual/en/install.fpm.php',
     ),
   );
 
+  $info['postgresql'] = array(
+    'label' => 'PostgreSQL',
+    'description' => dt('PostgreSQL is a powerful, open source object-relational database system.'),
+    'links' => array(
+      'http://www.postgresql.org',
+    ),
+  );
+
+  $info['redis'] = array(
+    'label' => 'redis',
+    'description' => dt('Redis is an open source, BSD licensed, advanced key-value store.'),
+    'links' => array(
+      'http://redis.io',
+    ),
+  );
+
   $info['selenium'] = array(
-    'label' => dt('Selenium'),
+    'label' => 'Selenium',
     'description' => dt('Primarily it is for automating web applications for testing purposes, but is certainly not limited to just that.'),
     'links' => array(
       'http://docs.seleniumhq.org',
+    ),
+  );
+
+  $info['solr'] = array(
+    'label' => 'Apache Solr',
+    'description' => dt('SolrTM is the popular, blazing fast open source enterprise search platform from the Apache LuceneTM project.'),
+    'links' => array(
+      'http://lucene.apache.org/solr',
+    ),
+  );
+
+  $info['Tomcat'] = array(
+    'label' => 'Tomcat',
+    'description' => dt('Apache Tomcat is an open source software implementation of the Java Servlet and JavaServer Pages technologies.'),
+    'links' => array(
+      'http://tomcat.apache.org',
+    ),
+  );
+
+  $info['varnish'] = array(
+    'label' => 'Varnish',
+    'description' => dt('Varnish Cache is a web application accelerator also known as a caching HTTP reverse proxy.'),
+    'links' => array(
+      'https://www.varnish-cache.org',
+    ),
+  );
+
+  $info['xapian'] = array(
+    'label' => 'Xapian',
+    'description' => dt("Xapian is an Open Source Search Engine Library, released under the GPL. It's written in C++."),
+    'links' => array(
+      'http://xapian.org',
     ),
   );
 

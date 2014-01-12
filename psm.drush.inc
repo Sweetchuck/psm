@@ -803,9 +803,9 @@ function psm_info_group($name = NULL) {
  * Get a instance handler.
  *
  * @param array|string $info
- *   Service definition.
+ *   Instance definition or the service name.
  * @param string $name
- *   Instance identifier.
+ *   Instance name.
  *
  * @return \Drush\psm\InstanceInterface
  *   Instance handler.
@@ -816,13 +816,10 @@ function psm_instance_factory($info, $name = NULL) {
     $info = $instances[$info][$name];
   }
 
-  if (!empty($info['class'])) {
-    $class = $info['class'];
-  }
-  else {
-    $service = psm_info_service($info['service']);
-    $class = $service['class'];
-  }
+  // Make sure the autoloader is prepared.
+  // @todo Better place to initialize the autoloader.
+  $service = psm_info_service($info['service']);
+  $class = (!empty($info['class']) ? $info['class'] : $service['class']);
 
   return $class::factory($info);
 }

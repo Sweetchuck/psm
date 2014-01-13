@@ -193,7 +193,7 @@ function psm_drush_command() {
 function psm_drush_help($subject = NULL) {
   $subject_args = explode(':', $subject);
   $subject = array_shift($subject_args);
-  if ($subject_args) {
+  if ($subject_args && in_array($subject_args[0], _psm_drush_help_subject_prefixes())) {
     $subject .= ':' . array_shift($subject_args);
   }
 
@@ -882,6 +882,28 @@ function psm_get_instances_by_group($group_name) {
   }
 
   return $instances;
+}
+
+/**
+ * Log entry prefixes.
+ *
+ * @return string[]
+ *   Array of log entry prefixes.
+ */
+function _psm_drush_help_subject_prefixes() {
+  return array(
+    'warning',
+    'cancel',
+    'failed',
+    'error',
+    'ok',
+    'completed',
+    'success',
+    'status',
+    'notice',
+    'message',
+    'info',
+  );
 }
 
 /**

@@ -556,7 +556,7 @@ function psm_psm_service_info() {
     'label' => 'Apache',
     'description' => dt('The Apache HTTP Server Project is a collaborative software development effort aimed at creating a robust, commercial-grade, featureful, and freely-available source code implementation of an HTTP (Web) server.'),
     'links' => array(
-      'http://httpd.apache.org',
+      'home' => 'http://httpd.apache.org',
     ),
   );
 
@@ -564,7 +564,7 @@ function psm_psm_service_info() {
     'label' => 'Jenkins',
     'description' => dt('An extendable open source continuous integration server.'),
     'links' => array(
-      'http://jenkins-ci.org',
+      'home' => 'http://jenkins-ci.org',
     ),
   );
 
@@ -572,7 +572,7 @@ function psm_psm_service_info() {
     'label' => 'MemCache',
     'description' => dt('Free & open source, high-performance, distributed memory object caching system.'),
     'links' => array(
-      'http://memcached.org',
+      'home' => 'http://memcached.org',
     ),
   );
 
@@ -580,7 +580,7 @@ function psm_psm_service_info() {
     'label' => 'MongoDB',
     'description' => dt('MongoDB (from "humongous") is an open-source document database, and the leading NoSQL database. Written in C++.'),
     'links' => array(
-      'http://www.mongodb.org',
+      'home' => 'http://www.mongodb.org',
     ),
   );
 
@@ -588,9 +588,9 @@ function psm_psm_service_info() {
     'label' => 'MySQL',
     'description' => dt("The world's most popular open source database."),
     'links' => array(
-      'http://www.mysql.com',
-      'http://www.percona.com',
-      'https://mariadb.org',
+      'home' => 'http://www.mysql.com',
+      'percona' => 'http://www.percona.com',
+      'mariadb' => 'https://mariadb.org',
     ),
   );
 
@@ -598,7 +598,7 @@ function psm_psm_service_info() {
     'label' => 'Nginx',
     'description' => dt('nginx [engine x] is an HTTP and reverse proxy server, as well as a mail proxy server, written by Igor Sysoev.'),
     'links' => array(
-      'http://nginx.org',
+      'home' => 'http://nginx.org',
     ),
   );
 
@@ -606,7 +606,7 @@ function psm_psm_service_info() {
     'label' => 'PhpFpm',
     'description' => dt('FPM (FastCGI Process Manager) is an alternative PHP FastCGI implementation with some additional features (mostly) useful for heavy-loaded sites.'),
     'links' => array(
-      'http://www.php.net/manual/en/install.fpm.php',
+      'home' => 'http://www.php.net/manual/en/install.fpm.php',
     ),
   );
 
@@ -614,7 +614,7 @@ function psm_psm_service_info() {
     'label' => 'PostgreSQL',
     'description' => dt('PostgreSQL is a powerful, open source object-relational database system.'),
     'links' => array(
-      'http://www.postgresql.org',
+      'home' => 'http://www.postgresql.org',
     ),
   );
 
@@ -622,7 +622,7 @@ function psm_psm_service_info() {
     'label' => 'redis',
     'description' => dt('Redis is an open source, BSD licensed, advanced key-value store.'),
     'links' => array(
-      'http://redis.io',
+      'home' => 'http://redis.io',
     ),
   );
 
@@ -630,7 +630,7 @@ function psm_psm_service_info() {
     'label' => 'Selenium',
     'description' => dt('Primarily it is for automating web applications for testing purposes, but is certainly not limited to just that.'),
     'links' => array(
-      'http://docs.seleniumhq.org',
+      'home' => 'http://docs.seleniumhq.org',
     ),
   );
 
@@ -638,7 +638,7 @@ function psm_psm_service_info() {
     'label' => 'Apache Solr',
     'description' => dt('SolrTM is the popular, blazing fast open source enterprise search platform from the Apache LuceneTM project.'),
     'links' => array(
-      'http://lucene.apache.org/solr',
+      'home' => 'http://lucene.apache.org/solr',
     ),
   );
 
@@ -646,7 +646,7 @@ function psm_psm_service_info() {
     'label' => 'Tomcat',
     'description' => dt('Apache Tomcat is an open source software implementation of the Java Servlet and JavaServer Pages technologies.'),
     'links' => array(
-      'http://tomcat.apache.org',
+      'home' => 'http://tomcat.apache.org',
     ),
   );
 
@@ -654,7 +654,7 @@ function psm_psm_service_info() {
     'label' => 'Varnish',
     'description' => dt('Varnish Cache is a web application accelerator also known as a caching HTTP reverse proxy.'),
     'links' => array(
-      'https://www.varnish-cache.org',
+      'home' => 'https://www.varnish-cache.org',
     ),
   );
 
@@ -662,7 +662,7 @@ function psm_psm_service_info() {
     'label' => 'Xapian',
     'description' => dt("Xapian is an Open Source Search Engine Library, released under the GPL. It's written in C++."),
     'links' => array(
-      'http://xapian.org',
+      'home' => 'http://xapian.org',
     ),
   );
 

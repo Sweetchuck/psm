@@ -954,7 +954,7 @@ function _psm_info_service_defaults($service_name, array $info = array()) {
     if (is_dir("$command_file_dir/lib")) {
       $info['lib_dir'] = "$command_file_dir/lib";
     }
-    elseif (strrpos($command_file_dir, '/includes') && is_dir("$command_file_dir/../lib")) {
+    elseif (preg_match('@.+/includes$@', $command_file_dir) && is_dir("$command_file_dir/../lib")) {
       $info['lib_dir'] = "$command_file_dir/../lib";
     }
   }

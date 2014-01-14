@@ -7,66 +7,50 @@
 
 namespace Drush\psm\Plugin\psm\Instance;
 
-use Drush\psm\InstanceBasePid;
+use Drush\psm\InstanceSolrBase;
 
 /**
  * Apache Solr instance manager.
  *
  * @package Drush\psm\Plugin\psm\Instance
  */
-class Solr extends InstanceBasePid {
+class Solr4 extends InstanceSolrBase {
+
+  protected $solrCoreFileNamePrefix = 'solr-core';
 
   /**
    * @return string
    */
   public function version() {
     if ($this->versionNumber === NULL) {
-      $this->versionNumber = '';
-
+      // Set the version number based on the file name.
       $solr_core_path = $this->getSolrCoreFilePath();
       $solr_core = pathinfo($solr_core_path, PATHINFO_FILENAME);
-      $this->versionNumber = strtr($solr_core, array(
-          'apache-' => '',
-          'solr-core-' => '',
-        ));
+      $this->versionNumber = str_replace($this->solrCoreFileNamePrefix . '-', '', $solr_core);
 
-      if ($this->versionNumber >= '4') {
-        $root_dir = $this->getInfoEntry('root_dir');
-        $cmd = array(
-          'working_dir' => $root_dir . '/' . $this->getInfoEntry('working_dir'),
-          'cmd' => $this->getInfoEntry('executable') . ' -jar %s path=%s --version',
-          'jar' => $this->getInfoEntry('jar'),
-          'solr-core' => $solr_core_path,
-        );
-
-        if (call_user_func_array('drush_shell_cd_and_exec', $cmd)) {
-          $pattern = '@\s*\d+:\s+(?P<version>[^\s]+).+? | ' . preg_quote($cmd['solr-core'], '@') . '$@';
-          $lines = (array) drush_shell_exec_output();
-          foreach ($lines as $line) {
-            $matches = array();
-            if (preg_match($pattern, $line, $matches)) {
-              $this->versionNumber = $matches['version'];
-              break;
-            }
+      // Try to run a command and parse the output in order to get the version
+      // number.
+      $root_dir = $this->getInfoEntry('root_dir');
+      $cmd = array(
+        'working_dir' => $root_dir . '/' . $this->getInfoEntry('working_dir'),
+        'cmd' => $this->getInfoEntry('executable') . ' -jar %s path=%s --version',
+        'jar' => $this->getInfoEntry('jar'),
+        'solr-core' => $solr_core_path,
+      );
+      if (call_user_func_array('drush_shell_cd_and_exec', $cmd)) {
+        $pattern = '@\s*\d+:\s+(?P<version>[^\s]+).+? | ' . preg_quote($cmd['solr-core'], '@') . '$@';
+        $lines = (array) drush_shell_exec_output();
+        foreach ($lines as $line) {
+          $matches = array();
+          if (preg_match($pattern, $line, $matches)) {
+            $this->versionNumber = $matches['version'];
+            break;
           }
         }
       }
     }
 
     return $this->versionNumber;
-  }
-
-  /**
-   * @return string
-   */
-  protected function getSolrCoreFilePath() {
-    $root_dir = $this->getInfoEntry('root_dir');
-    $file = reset(drush_scan_directory(
-      "$root_dir/dist",
-      '/^(apache-){0,1}solr-core-\d+(\.\d+)*\.jar$/'
-    ));
-
-    return $file->filename;
   }
 
   /**

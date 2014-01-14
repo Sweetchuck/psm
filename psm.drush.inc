@@ -640,6 +640,11 @@ function psm_psm_service_info() {
     'links' => array(
       'home' => 'http://lucene.apache.org/solr',
     ),
+    'class' => array(
+      1 => '\Drush\psm\Plugin\psm\Instance\Solr1',
+      3 => '\Drush\psm\Plugin\psm\Instance\Solr3',
+      4 => '\Drush\psm\Plugin\psm\Instance\Solr4',
+    ),
   );
 
   $info['Tomcat'] = array(
@@ -807,6 +812,8 @@ function psm_info_group($name = NULL) {
  * @param string $name
  *   Instance name.
  *
+ * @throws Exception
+ *
  * @return \Drush\psm\InstanceInterface
  *   Instance handler.
  */
@@ -819,7 +826,24 @@ function psm_instance_factory($info, $name = NULL) {
   // Make sure the autoloader is prepared.
   // @todo Better place to initialize the autoloader.
   $service = psm_info_service($info['service']);
-  $class = (!empty($info['class']) ? $info['class'] : $service['class']);
+  if (!empty($info['class'])) {
+    $class = $info['class'];
+  }
+  elseif (!empty($info['api_version'])) {
+    if (is_array($service['class'])) {
+      if (empty($service['class'][$info['api_version']])) {
+        throw new Exception('Instance handler is not exists for API version: ' . $info['api_version']);
+      }
+
+      $class = $service['class'][$info['api_version']];
+    }
+    else {
+      $class = $service['class'];
+    }
+  }
+  else {
+    $class = $service['class'];
+  }
 
   return $class::factory($info);
 }
@@ -1025,7 +1049,7 @@ function _psm_config($subject) {
  */
 function _psm_config_files($subject, $paths = NULL) {
   if ($paths === NULL) {
-    $paths = _psm_config_paths($subject);
+    $paths = _psm_config_paths();
   }
 
   $patterns = array(
@@ -1048,12 +1072,9 @@ function _psm_config_files($subject, $paths = NULL) {
 /**
  * Collect the directories where a drushrc file can be.
  *
- * @param string $subject
- *   File name prefix.
- *
  * @return string[]
  *   Array of directory names.
  */
-function _psm_config_paths($subject) {
+function _psm_config_paths() {
   return (array) drush_get_context('ALIAS_PATH', array());
 }

@@ -56,7 +56,7 @@ abstract class InstanceBasePid extends InstanceBase {
       return $status;
     }
 
-    if (_drush_shell_exec($this->getExecutable())) {
+    if (_drush_shell_exec($this->getStartCommand())) {
       return $this->status(TRUE);
     }
 
@@ -174,7 +174,7 @@ abstract class InstanceBasePid extends InstanceBase {
    *   Zero based numeric indexed array. The array is suitable for the
    *   _drush_shell_exec().
    */
-  protected abstract function getExecutable();
+  protected abstract function getStartCommand();
 
   /**
    * Basic process handler.

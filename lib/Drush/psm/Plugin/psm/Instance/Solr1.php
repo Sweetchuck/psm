@@ -23,7 +23,7 @@ class Solr1 extends InstanceSolrBase {
    *   Zero based numeric indexed array. The array is suitable for the
    *   _drush_shell_exec().
    */
-  protected function getExecutable() {
+  protected function getStartCommand() {
     $cmd = array('nohup ' . $this->getInfoEntry('executable'));
 
     $options = $this->getInfoEntry('executable_options');

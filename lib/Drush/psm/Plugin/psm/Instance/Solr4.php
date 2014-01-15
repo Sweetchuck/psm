@@ -60,36 +60,78 @@ class Solr4 extends InstanceSolrBase {
    *   Zero based numeric indexed array. The array is suitable for the
    *   _drush_shell_exec().
    */
-  protected function getExecutable() {
-    $cmd = array('nohup ' . $this->getInfoEntry('executable'));
-
+  protected function getStartCommand() {
     $options = $this->getInfoEntry('executable_options');
-    foreach ($options as $option_name => $option_value) {
-      $cmd[0] .= " $option_name=%s";
-      $cmd[] = $option_value;
+    $daemon = !empty($options['--daemon']);
+
+    $cmd = array('');
+    if (!$daemon) {
+      $cmd[0] .= 'nohup ';
     }
 
-    $cmd[0] = ' -jar %s';
+    $cmd[0] .= $this->getInfoEntry('executable');
+    $cmd[0] .= ' -jar %s';
     $cmd[] = $this->getInfoEntry('jar');
 
-    $log_std = $this->getInfoEntry('log_file_std', FALSE, '/dev/null');
-    $log_error = $this->getInfoEntry('log_file_error', FALSE, '/dev/null');
-    if (!$log_std) {
-      $log_std = '/dev/null';
+    foreach ($options as $option_name => $option_value) {
+      if ($option_value === FALSE || $option_value === array()) {
+        continue;
+      }
+
+      if (strpos($option_name, '-D') === 0) {
+        $cmd[0] .= " $option_name=%s";
+        $cmd[] = $option_value;
+
+        continue;
+      }
+
+      switch ($option_name) {
+        // Flag.
+        case '--exec':
+        case '--daemon':
+          $cmd[0] .= " $option_name";
+          break;
+
+        // Key-value.
+        case '--config':
+        case '--init':
+        case '--pre':
+        case 'path':
+        case 'lib':
+        case 'STOP.PORT':
+        case 'STOP.KEY':
+        case 'STOP.WAIT':
+        case 'DEBUG':
+        case 'OPTION':
+          if (is_array($option_value)) {
+            $option_value = implode(',', $option_value);
+          }
+
+          $cmd[0] .= " $option_name=%s";
+          $cmd[] = $option_value;
+          break;
+
+      }
     }
 
-    if (!$log_error) {
-      $log_error = '/dev/null';
-    }
-
-    $cmd[0] .= ' > %s';
-    $cmd[] = $log_std;
-
-    $cmd[0] .= ' 2> %s';
-    $cmd[] = $log_error;
-
-    $cmd[0] .= ' & echo $! > %s';
-    $cmd[] = $this->getPidFile();
+//    $log_std = $this->getInfoEntry('log_file_std', FALSE, '/dev/null');
+//    $log_error = $this->getInfoEntry('log_file_error', FALSE, '/dev/null');
+//    if (!$log_std) {
+//      $log_std = '/dev/null';
+//    }
+//
+//    if (!$log_error) {
+//      $log_error = '/dev/null';
+//    }
+//
+//    $cmd[0] .= ' > %s';
+//    $cmd[] = $log_std;
+//
+//    $cmd[0] .= ' 2> %s';
+//    $cmd[] = $log_error;
+//
+//    $cmd[0] .= ' & echo $! > %s';
+//    $cmd[] = $this->getPidFile();
 
     return $cmd;
   }

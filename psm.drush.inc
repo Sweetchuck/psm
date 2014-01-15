@@ -193,7 +193,7 @@ function psm_drush_command() {
 function psm_drush_help($subject = NULL) {
   $subject_args = explode(':', $subject);
   $subject = array_shift($subject_args);
-  if ($subject_args && in_array($subject_args[0], _psm_drush_help_subject_prefixes())) {
+  if ($subject_args && in_array($subject, _psm_drush_help_subject_prefixes())) {
     $subject .= ':' . array_shift($subject_args);
   }
 
@@ -232,6 +232,8 @@ function psm_drush_help($subject = NULL) {
         '@service' => $subject_args[0],
         '@instance' => $subject_args[1],
       ));
+      $help = array_merge($help, drush_shell_exec_output());
+
       break;
 
     case 'error:psm_instance_stop':

@@ -188,7 +188,7 @@ abstract class InstanceBase implements InstanceInterface {
    * @param mixed $default
    *   If the existence is optional the this will be the default value.
    *
-   * @throws Exception
+   * @throws \Exception
    * @return mixed
    *   Value of the $key.
    */
@@ -197,7 +197,7 @@ abstract class InstanceBase implements InstanceInterface {
 
     if (!array_key_exists($key, $info)) {
       if ($required) {
-        throw new Exception("Invalid argument: $key", 1);
+        throw new \Exception("Invalid argument: $key", 1);
       }
       else {
         return $default;

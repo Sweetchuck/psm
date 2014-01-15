@@ -22,7 +22,7 @@ class Memcache extends InstanceBasePid {
   /**
    * {@inherit}
    */
-  protected function getExecutable() {
+  protected function getStartCommand() {
     $options = $this->getInfoEntry('executable_options', FALSE, array());
     $cmd = array($this->getInfoEntry('executable'));
     foreach ($options as $option_name => $option_value) {

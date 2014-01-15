@@ -39,13 +39,13 @@ class Nginx extends InstanceBasePid {
       throw new \Exception("Invalid argument $signal");
     }
 
-    return drush_shell_exec($this->getExecutable() . ' -s ' . $arg);
+    return drush_shell_exec($this->getStartCommand() . ' -s ' . $arg);
   }
 
   /**
    * {@inherit}
    */
-  protected function getExecutable() {
+  protected function getStartCommand() {
     $default_options = array('p' => '', 'c' => '', 'g' => '');
     $options = $this->getInfoEntry('executable_options', FALSE, array());
     $options += $default_options;

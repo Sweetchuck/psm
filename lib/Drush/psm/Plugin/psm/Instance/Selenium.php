@@ -30,7 +30,7 @@ class Selenium extends InstanceBasePid {
    *   Zero based numeric indexed array. The array is suitable for the
    *   _drush_shell_exec().
    */
-  protected function getExecutable() {
-    // @todo: Implement getExecutable() method.
+  protected function getStartCommand() {
+    // @todo: Implement getStartCommand() method.
   }
 }

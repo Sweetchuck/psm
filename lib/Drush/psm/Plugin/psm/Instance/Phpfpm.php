@@ -47,7 +47,7 @@ class Phpfpm extends InstanceBasePid {
   /**
    * {@inherit}
    */
-  protected function getExecutable() {
+  protected function getStartCommand() {
     $cmd = array($this->getInfoEntry('executable'));
     $options = $this->getExecutableOptions();
 

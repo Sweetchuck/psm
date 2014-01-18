@@ -10,12 +10,12 @@
 
 namespace Drush\psm\Plugin\psm\Instance;
 
-use Drush\psm\InstanceBasePid;
+use Drush\psm\InstanceBase;
 
 /**
  * Nginx server instance manager.
  */
-class Nginx extends InstanceBasePid {
+class Nginx extends InstanceBase {
 
   /**
    * {@inherit}
@@ -39,27 +39,31 @@ class Nginx extends InstanceBasePid {
       throw new \Exception("Invalid argument $signal");
     }
 
-    return drush_shell_exec($this->getStartCommand() . ' -s ' . $arg);
+    $command = $this->getStartCommand();
+    $command->executable .= ' -s ' . $arg;
+
+    return $command->run();
   }
 
   /**
    * {@inherit}
    */
   protected function getStartCommand() {
+    $command = parent::getStartCommand();
+
     $default_options = array('p' => '', 'c' => '', 'g' => '');
     $options = $this->getInfoEntry('executable_options', FALSE, array());
     $options += $default_options;
     $options = array_intersect_key($options, $default_options);
 
-    $cmd = array($this->getInfoEntry('executable'));
     foreach ($options as $option => $value) {
       if ($value) {
-        $cmd[0] .= " -{$option} %s";
-        $cmd[] = $value;
+        $command->executable .= " -{$option} %s";
+        $command->arguments[] = $value;
       }
     }
 
-    return $cmd;
+    return $command;
   }
 
 }

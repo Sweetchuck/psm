@@ -7,12 +7,12 @@
 
 namespace Drush\psm\Plugin\psm\Instance;
 
-use Drush\psm\InstanceBasePid;
+use Drush\psm\InstanceBase;
 
 /**
  * MemCache instance manager.
  */
-class Memcache extends InstanceBasePid {
+class Memcache extends InstanceBase {
 
   /**
    * @var string
@@ -23,8 +23,9 @@ class Memcache extends InstanceBasePid {
    * {@inherit}
    */
   protected function getStartCommand() {
+    $command = parent::getStartCommand();
+
     $options = $this->getInfoEntry('executable_options', FALSE, array());
-    $cmd = array($this->getInfoEntry('executable'));
     foreach ($options as $option_name => $option_value) {
       // Special handling of the pid file.
       if ($option_name === 'P' && $option_value) {
@@ -53,8 +54,8 @@ class Memcache extends InstanceBasePid {
         case 'B':
         case 'I':
         case 'o':
-          $cmd[0] .= " -$option_name %s";
-          $cmd[] = $option_value;
+          $command->executable .= " -$option_name %s";
+          $command->arguments[] = $option_value;
           break;
 
         // Flag.
@@ -68,7 +69,7 @@ class Memcache extends InstanceBasePid {
         case 'L':
         case 'C':
         case 'S':
-          $cmd[0] .= " -$option_name";
+          $command->executable .= " -$option_name";
           break;
 
         case 'l':
@@ -79,15 +80,15 @@ class Memcache extends InstanceBasePid {
           $option_value = trim($option_value);
 
           if ($option_value) {
-            $cmd[0] .= " -$option_name %s";
-            $cmd[] = $option_value;
+            $command->executable .= " -$option_name %s";
+            $command->arguments[] = $option_value;
           }
           break;
 
       }
     }
 
-    return $cmd;
+    return $command;
   }
 
 }

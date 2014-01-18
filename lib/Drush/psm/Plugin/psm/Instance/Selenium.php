@@ -6,9 +6,9 @@
 
 namespace Drush\psm\Plugin\psm\Instance;
 
-use Drush\psm\InstanceBasePid;
+use Drush\psm\InstanceBase;
 
-class Selenium extends InstanceBasePid {
+class Selenium extends InstanceBase {
 
   public function version() {
     if ($this->versionNumber === NULL) {
@@ -24,11 +24,7 @@ class Selenium extends InstanceBasePid {
   }
 
   /**
-   * Get the command to start the instance.
-   *
-   * @return array
-   *   Zero based numeric indexed array. The array is suitable for the
-   *   _drush_shell_exec().
+   * {@inheritdoc}
    */
   protected function getStartCommand() {
     // @todo: Implement getStartCommand() method.

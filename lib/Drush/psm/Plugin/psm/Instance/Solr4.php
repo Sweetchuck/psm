@@ -7,6 +7,7 @@
 
 namespace Drush\psm\Plugin\psm\Instance;
 
+use Drush\psm\Command;
 use Drush\psm\InstanceSolrBase;
 
 /**
@@ -16,10 +17,13 @@ use Drush\psm\InstanceSolrBase;
  */
 class Solr4 extends InstanceSolrBase {
 
+  /**
+   * {@inheritdoc}
+   */
   protected $solrCoreFileNamePrefix = 'solr-core';
 
   /**
-   * @return string
+   * {@inheritdoc}
    */
   public function version() {
     if ($this->versionNumber === NULL) {
@@ -30,9 +34,8 @@ class Solr4 extends InstanceSolrBase {
 
       // Try to run a command and parse the output in order to get the version
       // number.
-      $root_dir = $this->getInfoEntry('root_dir');
       $cmd = array(
-        'working_dir' => $root_dir . '/' . $this->getInfoEntry('working_dir'),
+        'working_dir' => $this->getInfoEntry('working_dir'),
         'cmd' => $this->getInfoEntry('executable') . ' -jar %s path=%s --version',
         'jar' => $this->getInfoEntry('jar'),
         'solr-core' => $solr_core_path,
@@ -54,34 +57,52 @@ class Solr4 extends InstanceSolrBase {
   }
 
   /**
-   * Get the command to start the instance.
-   *
-   * @return array
-   *   Zero based numeric indexed array. The array is suitable for the
-   *   _drush_shell_exec().
+   * {@inheritdoc}
    */
   protected function getStartCommand() {
-    $options = $this->getInfoEntry('executable_options');
-    $daemon = !empty($options['--daemon']);
+    $command = new Command();
 
-    $cmd = array('');
-    if (!$daemon) {
-      $cmd[0] .= 'nohup ';
+    $command->daemon = $this->getInfoEntry('daemon', FALSE, '');
+    $command->workingDir = $this->getInfoEntry('working_dir', FALSE, '');
+    $command->executable = $this->getInfoEntry('executable');
+    $command->redirectStd = $this->getInfoEntry('log_file_std', FALSE, '');
+    $command->redirectError = $this->getInfoEntry('log_file_error', FALSE, '');
+
+    $this->addOptions($command, $this->getInfoEntry('jvm_options', FALSE, array()));
+
+    $command->executable .= ' -jar %s';
+    $command->arguments[] = $this->getInfoEntry('jar');
+
+    $this->addOptions($command, $this->getInfoEntry('executable_options', FALSE, array()));
+
+    $pid_file = $this->getInfoEntry('pid_file');
+    if ($pid_file) {
+      $command->pidFile = $pid_file;
     }
 
-    $cmd[0] .= $this->getInfoEntry('executable');
-    $cmd[0] .= ' -jar %s';
-    $cmd[] = $this->getInfoEntry('jar');
+    return $command;
+  }
 
+  /**
+   * {@inheritdoc}
+   */
+  protected function getStopCommand() {
+    $command = new Command();
+
+    $command->workingDir = $this->getInfoEntry('working_dir', FALSE, '');
+    $command->executable = $this->getInfoEntry('executable');
+
+    $this->addOptions($command, $this->getInfoEntry('jvm_options', FALSE, array()));
+
+    $command->executable .= ' -jar %s --stop';
+    $command->arguments[] = $this->getInfoEntry('jar');
+
+    return $command;
+  }
+
+  protected function addOptions($command, $options) {
     foreach ($options as $option_name => $option_value) {
       if ($option_value === FALSE || $option_value === array()) {
-        continue;
-      }
-
-      if (strpos($option_name, '-D') === 0) {
-        $cmd[0] .= " $option_name=%s";
-        $cmd[] = $option_value;
-
         continue;
       }
 
@@ -89,51 +110,30 @@ class Solr4 extends InstanceSolrBase {
         // Flag.
         case '--exec':
         case '--daemon':
-          $cmd[0] .= " $option_name";
+        case '-DDEBUG':
+          $command->executable .= " $option_name";
           break;
 
         // Key-value.
         case '--config':
         case '--init':
         case '--pre':
-        case 'path':
-        case 'lib':
-        case 'STOP.PORT':
-        case 'STOP.KEY':
-        case 'STOP.WAIT':
-        case 'DEBUG':
-        case 'OPTION':
+        case '-Dpath':
+        case '-Dlib':
+        case '-DSTOP.PORT':
+        case '-DSTOP.KEY':
+        case '-DSTOP.WAIT':
+        case '-DOPTION':
           if (is_array($option_value)) {
             $option_value = implode(',', $option_value);
           }
 
-          $cmd[0] .= " $option_name=%s";
-          $cmd[] = $option_value;
+          $command->executable .= " $option_name=%s";
+          $command->arguments[] = $option_value;
           break;
 
       }
     }
-
-//    $log_std = $this->getInfoEntry('log_file_std', FALSE, '/dev/null');
-//    $log_error = $this->getInfoEntry('log_file_error', FALSE, '/dev/null');
-//    if (!$log_std) {
-//      $log_std = '/dev/null';
-//    }
-//
-//    if (!$log_error) {
-//      $log_error = '/dev/null';
-//    }
-//
-//    $cmd[0] .= ' > %s';
-//    $cmd[] = $log_std;
-//
-//    $cmd[0] .= ' 2> %s';
-//    $cmd[] = $log_error;
-//
-//    $cmd[0] .= ' & echo $! > %s';
-//    $cmd[] = $this->getPidFile();
-
-    return $cmd;
   }
 
 }

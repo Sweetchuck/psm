@@ -193,7 +193,7 @@ function psm_drush_command() {
 function psm_drush_help($subject = NULL) {
   $subject_args = explode(':', $subject);
   $subject = array_shift($subject_args);
-  if ($subject_args && in_array($subject, _psm_drush_help_subject_prefixes())) {
+  if ($subject_args && in_array($subject, _psm_drush_log_entry_types())) {
     $subject .= ':' . array_shift($subject_args);
   }
 
@@ -232,7 +232,7 @@ function psm_drush_help($subject = NULL) {
         '@service' => $subject_args[0],
         '@instance' => $subject_args[1],
       ));
-      $help = array_merge($help, drush_shell_exec_output());
+      $help = array_merge($help, (array) drush_shell_exec_output());
 
       break;
 
@@ -409,6 +409,13 @@ function drush_psm_start($service_name = NULL, $instance_name = NULL) {
       if (!$output[$id]['status']) {
         drush_set_error("psm_instance_start:{$output[$id]['service']}:{$output[$id]['name']}");
       }
+      else {
+        $message = dt('Instance @service:@name started.', array(
+            '@service' => $output[$id]['service'],
+            '@name' => $output[$id]['name'],
+          ));
+        drush_log($message, 'completed');
+      }
     }
   }
 
@@ -442,6 +449,13 @@ function drush_psm_stop($service_name = NULL, $instance_name = NULL) {
 
       if ($output[$id]['status']) {
         drush_set_error("psm_instance_stop:{$output[$id]['service']}:{$output[$id]['name']}");
+      }
+      else {
+        $message = dt('Instance @service:@name stopped.', array(
+            '@service' => $output[$id]['service'],
+            '@name' => $output[$id]['name'],
+          ));
+        drush_log($message, 'completed');
       }
     }
   }
@@ -477,6 +491,13 @@ function drush_psm_reload($service_name = NULL, $instance_name = NULL) {
       if (!$output[$id]['status']) {
         drush_set_error("psm_instance_reload:{$output[$id]['service']}:{$output[$id]['name']}");
       }
+      else {
+        $message = dt('Instance @service:@name reloaded.', array(
+            '@service' => $output[$id]['service'],
+            '@name' => $output[$id]['name'],
+          ));
+        drush_log($message, 'completed');
+      }
     }
   }
 
@@ -510,6 +531,13 @@ function drush_psm_restart($service_name = NULL, $instance_name = NULL) {
 
       if (!$output[$id]['status']) {
         drush_set_error("psm_instance_restart:{$output[$id]['service']}:{$output[$id]['name']}");
+      }
+      else {
+        $message = dt('Instance @service:@name restarted.', array(
+            '@service' => $output[$id]['service'],
+            '@name' => $output[$id]['name'],
+          ));
+        drush_log($message, 'completed');
       }
     }
   }
@@ -916,7 +944,7 @@ function psm_get_instances_by_group($group_name) {
  * @return string[]
  *   Array of log entry prefixes.
  */
-function _psm_drush_help_subject_prefixes() {
+function _psm_drush_log_entry_types() {
   return array(
     'warning',
     'cancel',

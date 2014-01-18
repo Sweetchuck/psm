@@ -7,12 +7,12 @@
 
 namespace Drush\psm\Plugin\psm\Instance;
 
-use Drush\psm\InstanceBasePid;
+use Drush\psm\InstanceBase;
 
 /**
  * PhpFpm instance manager.
  */
-class Phpfpm extends InstanceBasePid {
+class Phpfpm extends InstanceBase {
 
   /**
    * {@inherit}
@@ -48,10 +48,9 @@ class Phpfpm extends InstanceBasePid {
    * {@inherit}
    */
   protected function getStartCommand() {
-    $cmd = array($this->getInfoEntry('executable'));
-    $options = $this->getExecutableOptions();
+    $command = parent::getStartCommand();
 
-    foreach ($options as $option => $value) {
+    foreach ($this->getExecutableOptions() as $option => $value) {
       switch ($option) {
         case 'n':
         case 'e':
@@ -59,7 +58,7 @@ class Phpfpm extends InstanceBasePid {
         case 'F':
         case 'R':
           if ($value) {
-            $cmd[0] .= " -$option";
+            $command->executable .= " -$option";
           }
           break;
 
@@ -67,22 +66,22 @@ class Phpfpm extends InstanceBasePid {
         case 'p':
         case 'y':
           if ($value) {
-            $cmd[0] .= " -$option %s";
-            $cmd[] = $value;
+            $command->executable .= " -$option %s";
+            $command->arguments[] = $value;
           }
           break;
 
         case 'g':
           if ($value) {
-            $cmd[0] .= ' -g %s';
-            $cmd[] = $this->getPidFile();
+            $command->executable .= ' -g %s';
+            $command->arguments[] = $this->getPidFile();
           }
           break;
 
       }
     }
 
-    return $cmd;
+    return $command;
   }
 
   /**

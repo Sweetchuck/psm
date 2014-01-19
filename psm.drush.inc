@@ -867,7 +867,7 @@ function psm_info_group($name = NULL) {
  * @return bool
  *   Directory is added or not.
  */
-function psm_autoloader_add_lib_dir($lib_dir){
+function psm_autoloader_add_lib_dir($lib_dir) {
   static $loader = NULL;
 
   if ($loader === NULL) {
@@ -1180,4 +1180,61 @@ function _psm_config_files($subject, $paths = NULL) {
  */
 function _psm_config_paths() {
   return (array) drush_get_context('ALIAS_PATH', array());
+}
+
+function psm_array_to_xml(array $source) {
+  // Build an XML document from our results.
+  $doc = new DOMDocument('1.0', 'UTF-8');
+  $doc->formatOutput = TRUE;
+  $doc->preserveWhiteSpace = TRUE;
+  _psm_array_to_xml_add($doc, $source);
+
+  return $doc->saveXML();
+}
+
+function _psm_array_to_xml_add(DOMElement $root, array $element) {
+  $element += array(
+    'type' => 'node',
+    'name' => '',
+    'attributes' => array(),
+    'children' => array(),
+    'cdata' => FALSE,
+  );
+
+  $doc = ($root instanceof DOMDocument ? $root : $root->ownerDocument);
+  switch ($element['type']) {
+    case 'node':
+      $node = $doc->createElement($element['name']);
+      $root->appendChild($node);
+      foreach ($element['attributes'] as $attribute_name => $value) {
+        $node->setAttribute($attribute_name, $value);
+      }
+
+      if (is_array($element['children'])) {
+        foreach ($element['children'] as $child) {
+          _psm_array_to_xml_add($node, $child);
+        }
+      }
+      elseif ($element['children']) {
+        if ($element['cdata']) {
+          $text = $doc->createCDATASection($element['children']);
+        }
+        else {
+          $text = $doc->createTextNode($element['children']);
+        }
+        $node->appendChild($text);
+      }
+      break;
+
+    case 'text':
+      if ($element['cdata']) {
+        $text = $doc->createCDATASection($element['children']);
+      }
+      else {
+        $text = $doc->createTextNode($element['children']);
+      }
+      $root->appendChild($text);
+      break;
+
+  }
 }

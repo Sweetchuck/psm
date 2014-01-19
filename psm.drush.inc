@@ -580,6 +580,10 @@ function drush_psm_groups($name = NULL) {
  * Implements hook_psm_service_info().
  */
 function psm_psm_service_info() {
+  $base = array(
+    'command_file' => 'psm',
+  );
+
   $info = array();
 
   $info['apache'] = array(
@@ -588,7 +592,7 @@ function psm_psm_service_info() {
     'links' => array(
       'home' => 'http://httpd.apache.org',
     ),
-  );
+  ) + $base;
 
   $info['jenkins'] = array(
     'label' => 'Jenkins',
@@ -596,7 +600,7 @@ function psm_psm_service_info() {
     'links' => array(
       'home' => 'http://jenkins-ci.org',
     ),
-  );
+  ) + $base;
 
   $info['memcache'] = array(
     'label' => 'MemCache',
@@ -604,7 +608,7 @@ function psm_psm_service_info() {
     'links' => array(
       'home' => 'http://memcached.org',
     ),
-  );
+  ) + $base;
 
   $info['mongodb'] = array(
     'label' => 'MongoDB',
@@ -612,7 +616,7 @@ function psm_psm_service_info() {
     'links' => array(
       'home' => 'http://www.mongodb.org',
     ),
-  );
+  ) + $base;
 
   $info['mysql'] = array(
     'label' => 'MySQL',
@@ -630,7 +634,7 @@ function psm_psm_service_info() {
     'links' => array(
       'home' => 'http://nginx.org',
     ),
-  );
+  ) + $base;
 
   $info['phpfpm'] = array(
     'label' => 'PhpFpm',
@@ -646,7 +650,7 @@ function psm_psm_service_info() {
     'links' => array(
       'home' => 'http://www.postgresql.org',
     ),
-  );
+  ) + $base;
 
   $info['redis'] = array(
     'label' => 'redis',
@@ -654,7 +658,7 @@ function psm_psm_service_info() {
     'links' => array(
       'home' => 'http://redis.io',
     ),
-  );
+  ) + $base;
 
   $info['selenium'] = array(
     'label' => 'Selenium',
@@ -662,7 +666,7 @@ function psm_psm_service_info() {
     'links' => array(
       'home' => 'http://docs.seleniumhq.org',
     ),
-  );
+  ) + $base;
 
   $info['solr'] = array(
     'label' => 'Apache Solr',
@@ -675,7 +679,7 @@ function psm_psm_service_info() {
       3 => '\Drush\psm\Plugin\psm\Instance\Solr3',
       4 => '\Drush\psm\Plugin\psm\Instance\Solr4',
     ),
-  );
+  ) + $base;
 
   $info['Tomcat'] = array(
     'label' => 'Tomcat',
@@ -683,7 +687,7 @@ function psm_psm_service_info() {
     'links' => array(
       'home' => 'http://tomcat.apache.org',
     ),
-  );
+  ) + $base;
 
   $info['varnish'] = array(
     'label' => 'Varnish',
@@ -691,7 +695,7 @@ function psm_psm_service_info() {
     'links' => array(
       'home' => 'https://www.varnish-cache.org',
     ),
-  );
+  ) + $base;
 
   $info['xapian'] = array(
     'label' => 'Xapian',
@@ -699,9 +703,23 @@ function psm_psm_service_info() {
     'links' => array(
       'home' => 'http://xapian.org',
     ),
-  );
+  ) + $base;
 
   return $info;
+}
+
+/**
+ * Implements hook_psm_instance_info().
+ */
+function psm_psm_instance_info() {
+  return _psm_config('instances');
+}
+
+/**
+ * Implements hook_psm_group_info().
+ */
+function psm_psm_group_info() {
+  return _psm_config('groups');
 }
 
 /**
@@ -724,40 +742,21 @@ function psm_info_service($name = NULL) {
 
     // Fill the default values.
     foreach (array_keys($services) as $service_name) {
-      $service =& $services[$service_name];
-      $service = _psm_info_service_defaults($service_name, $service);
+      _psm_info_service_defaults($service_name, $services[$service_name]);
     }
 
     // Allow to other modules to alter the service definitions.
     drush_command_invoke_all('psm_service_info_alter', $services);
 
-    // Register the lib dir to autoloader.
-    $command_files = drush_commandfile_list();
-    $command_file_dir = dirname($command_files['psm']);
-
-    try {
-      $loader = require "$command_file_dir/vendor/autoload.php";
-    }
-    catch (Exception $e) {
-      drush_set_error('psm_autoload_missing');
-
-      return array();
-    }
-
     foreach (array_keys($services) as $service_name) {
-      $services[$service_name]['name'] = $service_name;
-
-      if (!empty($service['lib_dir'])) {
-        $prefixes = $loader->getPrefixes();
-        if (!isset($prefixes['Drush']) || !in_array($service['lib_dir'], $prefixes['Drush'])) {
-          $loader->add('Drush', $service['lib_dir']);
-        }
+      if (!empty($services[$service_name]['lib_dir'])) {
+        psm_autoloader_add_lib_dir($services[$service_name]['lib_dir']);
       }
     }
   }
 
   if ($name) {
-    if (!array_key_exists($name, $services)) {
+    if (!isset($services[$name])) {
       throw new Exception('Invalid argument', 1);
     }
 
@@ -770,36 +769,60 @@ function psm_info_service($name = NULL) {
 /**
  * Get the instance definitions.
  *
+ * @param string|null $service
+ *   Service identifier.
  * @param string|null $name
  *   Instance identifier.
  *
  * @throws Exception
- *
  * @return array
  *   Instance definitions.
  */
-function psm_info_instance($name = NULL) {
-  static $instances = NULL;
+function psm_info_instance($service = NULL, $name = NULL) {
+  static $instances_all = NULL;
 
-  if ($instances === NULL) {
-    $instances = _psm_config('instances');
-    foreach (array_keys($instances) as $service_name) {
-      foreach (array_keys($instances[$service_name]) as $instance_name) {
-        $instances[$service_name][$instance_name]['name'] = $instance_name;
-        $instances[$service_name][$instance_name]['service'] = $service_name;
+  if ($instances_all === NULL) {
+    // Collect the service definitions.
+    $instances_all = drush_command_invoke_all('psm_instance_info');
+
+    // Fill the default values.
+    foreach (array_keys($instances_all) as $service_name) {
+      foreach (array_keys($instances_all[$service_name]) as $instance_name) {
+        _psm_info_instance_defaults($service_name, $instance_name, $instances_all[$service_name][$instance_name]);
+      }
+    }
+
+    // Allow to other modules to alter the service definitions.
+    drush_command_invoke_all('psm_instance_info_alter', $instances_all);
+
+    foreach ($instances_all as $instances) {
+      foreach ($instances as $instance) {
+        if (!empty($instance['lib_dir'])) {
+          psm_autoloader_add_lib_dir($instance['lib_dir']);
+        }
       }
     }
   }
 
-  if ($name) {
-    if (!array_key_exists($name, $instances)) {
+  if ($service) {
+    if (!isset($instances_all[$service])) {
+      // @todo Error message.
       throw new Exception('Invalid argument', 1);
     }
 
-    return $instances[$name];
+    if ($name) {
+      if (!isset($instances_all[$service][$name])) {
+        // @todo Error message.
+        throw new Exception('Invalid argument', 1);
+      }
+
+      return $instances_all[$service][$name];
+    }
+
+    return $instances_all[$service];
   }
 
-  return $instances;
+  return $instances_all;
 }
 
 /**
@@ -817,7 +840,8 @@ function psm_info_group($name = NULL) {
   static $groups = NULL;
 
   if ($groups === NULL) {
-    $groups = _psm_config('groups');
+    // Collect the group definitions.
+    $groups = drush_command_invoke_all('psm_group_info');
     foreach (array_keys($groups) as $group_name) {
       $groups[$group_name]['name'] = $group_name;
     }
@@ -832,6 +856,43 @@ function psm_info_group($name = NULL) {
   }
 
   return $groups;
+}
+
+/**
+ * Add a root directory to the PSR-0 autoloader.
+ *
+ * @param string $lib_dir
+ *   Directory path.
+ *
+ * @return bool
+ *   Directory is added or not.
+ */
+function psm_autoloader_add_lib_dir($lib_dir){
+  static $loader = NULL;
+
+  if ($loader === NULL) {
+    // Register the lib dir to autoloader.
+    $command_files = drush_commandfile_list();
+    $command_file_dir = dirname($command_files['psm']);
+    try {
+      $loader = require "$command_file_dir/vendor/autoload.php";
+    }
+    catch (Exception $e) {
+      $loader = FALSE;
+      drush_set_error('psm_autoload_missing');
+    }
+  }
+
+  if ($loader) {
+    $prefixes = $loader->getPrefixes();
+    if (!isset($prefixes['Drush']) || !in_array($lib_dir, $prefixes['Drush'])) {
+      $loader->add('Drush', $lib_dir);
+    }
+
+    return TRUE;
+  }
+
+  return FALSE;
 }
 
 /**
@@ -971,14 +1032,10 @@ function _psm_drush_log_entry_types() {
  * @return array
  *   Fully populated service definition.
  */
-function _psm_info_service_defaults($service_name, array $info = array()) {
+function _psm_info_service_defaults($service_name, array &$info = array()) {
+  $info['name'] = $service_name;
+
   $info += array(
-    // Provider command file.
-    // Required.
-    'command_file' => 'psm',
-    // Machine name of the service.
-    // Required, but force populated later.
-    'name' => $service_name,
     // Human name of the service
     // Required.
     'label' => $service_name,
@@ -1012,8 +1069,24 @@ function _psm_info_service_defaults($service_name, array $info = array()) {
       $info['lib_dir'] = "$command_file_dir/../lib";
     }
   }
+}
 
-  return $info;
+/**
+ * Fill the default values of a service definition.
+ *
+ * @param string $service_name
+ *   Service identifier.
+ * @param string $instance_name
+ *   Instance identifier.
+ * @param array $info
+ *   Base definition.
+ *
+ * @return array
+ *   Fully populated instance definition.
+ */
+function _psm_info_instance_defaults($service_name, $instance_name, array &$info = array()) {
+  $info['service'] = $service_name;
+  $info['name'] = $instance_name;
 }
 
 /**

@@ -15,11 +15,19 @@ function hook_psm_service_info() {
   $info = array();
 
   $info['my_service_1'] = array(
+    // Required.
+    // String.
+    // Name of the drush command file, without the trailing .drush.inc.
+    'command_file' => 'my_service',
+    // Required.
+    // String.
     // You do not have to specify this, because this will be filled based on the
     // top level array key.
     'name' => 'my_service',
+    // String.
     // Human readable name of this service.
     'label' => 'My Service',
+    // String.
     // Long description about the service.
     'description' => dt('The Apache HTTP Server Project is a collaborative software development effort aimed at creating a robust, commercial-grade, featureful, and freely-available source code implementation of an HTTP (Web) server.'),
     // Useful links.
@@ -38,4 +46,23 @@ function hook_psm_service_info() {
   );
 
   return $info;
+}
+
+/**
+ * Provide information about the instances.
+ *
+ * @see psm_info_instance()
+ * @see _psm_info_instance_defaults()
+ */
+function hook_psm_instance_info() {
+  // @todo Documentation.
+}
+
+/**
+ * Provide information about the instance groups.
+ *
+ * @see psm_info_group()
+ */
+function hook_psm_group_info() {
+  // @todo Documentation.
 }

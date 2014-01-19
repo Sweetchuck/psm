@@ -111,7 +111,7 @@ class Command {
     if ($this->workingDir) {
       $cwd = getcwd();
       drush_op('chdir', $this->workingDir);
-      $result = call_user_func('_drush_shell_exec', $cmd, $this->interactive());
+      $result = _drush_shell_exec($cmd, $this->interactive());
       drush_op('chdir', $cwd);
 
       return $result;

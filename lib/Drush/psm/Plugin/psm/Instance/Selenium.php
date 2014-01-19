@@ -10,6 +10,9 @@ use Drush\psm\InstanceBase;
 
 class Selenium extends InstanceBase {
 
+  /**
+   * {@inheritdoc}
+   */
   public function version() {
     if ($this->versionNumber === NULL) {
       $this->versionNumber = '';

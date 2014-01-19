@@ -18,7 +18,7 @@ use Drush\psm\InstanceBase;
 class Nginx extends InstanceBase {
 
   /**
-   * {@inherit}
+   * {@inheritdoc}
    */
   protected function sendSignal($signal) {
     $arg = NULL;
@@ -46,7 +46,7 @@ class Nginx extends InstanceBase {
   }
 
   /**
-   * {@inherit}
+   * {@inheritdoc}
    */
   protected function getStartCommand() {
     $command = parent::getStartCommand();

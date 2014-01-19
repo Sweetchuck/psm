@@ -20,7 +20,7 @@ class Memcache extends InstanceBase {
   protected $versionOption = '-h';
 
   /**
-   * {@inherit}
+   * {@inheritdoc}
    */
   protected function getStartCommand() {
     $command = parent::getStartCommand();

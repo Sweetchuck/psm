@@ -15,7 +15,7 @@ use Drush\psm\InstanceBase;
 class Phpfpm extends InstanceBase {
 
   /**
-   * {@inherit}
+   * {@inheritdoc}
    */
   public function stop() {
     $pid = $this->status();
@@ -31,7 +31,7 @@ class Phpfpm extends InstanceBase {
   }
 
   /**
-   * {@inherit}
+   * {@inheritdoc}
    */
   public function reload() {
     $pid = $this->status();
@@ -45,7 +45,7 @@ class Phpfpm extends InstanceBase {
   }
 
   /**
-   * {@inherit}
+   * {@inheritdoc}
    */
   protected function getStartCommand() {
     $command = parent::getStartCommand();

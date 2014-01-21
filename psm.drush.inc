@@ -737,12 +737,18 @@ function psm_info_service($name = NULL) {
   static $services = NULL;
 
   if ($services === NULL) {
+    $services = array();
     // Collect the service definitions.
-    $services = drush_command_invoke_all('psm_service_info');
-
-    // Fill the default values.
-    foreach (array_keys($services) as $service_name) {
-      _psm_info_service_defaults($service_name, $services[$service_name]);
+    foreach (drush_command_implements('psm_service_info') as $command_file) {
+      $function = "{$command_file}_psm_service_info";
+      $result = $function();
+      if (is_array($result)) {
+        // Fill the default values.
+        foreach (array_keys($result) as $service_name) {
+          _psm_info_service_defaults($command_file, $service_name, $result[$service_name]);
+        }
+        $services += $result;
+      }
     }
 
     // Allow to other modules to alter the service definitions.
@@ -1024,6 +1030,8 @@ function _psm_drush_log_entry_types() {
 /**
  * Fill the default values of a service definition.
  *
+ * @param string $command_file
+ *   Name of the command file.
  * @param string $service_name
  *   Service identifier.
  * @param array $info
@@ -1032,7 +1040,8 @@ function _psm_drush_log_entry_types() {
  * @return array
  *   Fully populated service definition.
  */
-function _psm_info_service_defaults($service_name, array &$info = array()) {
+function _psm_info_service_defaults($command_file, $service_name, array &$info = array()) {
+  $info['command_file'] = $command_file;
   $info['name'] = $service_name;
 
   $info += array(

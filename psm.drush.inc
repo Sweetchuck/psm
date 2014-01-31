@@ -21,7 +21,6 @@ function psm_drush_command() {
   );
 
   $commands['psm-services'] = array(
-    'aliases' => array('psm'),
     'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
     'description' => dt('Something helpful description.'),
     'required-arguments' => FALSE,
@@ -47,6 +46,7 @@ function psm_drush_command() {
   );
 
   $commands['psm-instances'] = array(
+    'aliases' => array('psm'),
     'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
     'description' => dt('Something helpful description.'),
     'required-arguments' => FALSE,

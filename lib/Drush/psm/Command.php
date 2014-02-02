@@ -52,6 +52,23 @@ class Command {
    */
   public $interactive = FALSE;
 
+  /**
+   * Cast to string.
+   *
+   * @return string
+   *   The command.
+   */
+  public function __toString() {
+    $args = $this->build();
+
+    $cmd = array_shift($args);
+    foreach ($args as $key => $value) {
+      $args[$key] = escapeshellarg($value);
+    }
+
+    return vsprintf($cmd, $args);
+  }
+
   public function interactive() {
     return $this->interactive || $this->redirectStd || $this->redirectError;
   }
@@ -63,9 +80,65 @@ class Command {
    *   TRUE on success, FALSE on failure.
    */
   public function run() {
-    $cmd = array();
+    $cmd = $this->build();
 
-    $cmd['executable'] = $this->executable;
+    if ($this->workingDir) {
+      $cwd = getcwd();
+      drush_op('chdir', $this->workingDir);
+      $result = _drush_shell_exec($cmd, $this->interactive());
+      drush_op('chdir', $cwd);
+
+      return $result;
+    }
+    else {
+      return _drush_shell_exec($cmd, $this->interactive());
+    }
+  }
+
+  /**
+   * Add command line options and their placeholders.
+   *
+   * @param array $options
+   *   Array of command line options.
+   */
+  public function addOptions(array $options) {
+    foreach ($options as $option_name => $option_value) {
+      if ($option_value === FALSE
+        || $option_value === array()
+        || !preg_match('/^[a-zA-Z0-9\._-]+$/', $option_name)
+      ) {
+        continue;
+      }
+
+      switch (gettype($option_value)) {
+        case 'boolean':
+          $this->executable .= " $option_name";
+          break;
+
+        case 'integer':
+        case 'double':
+        case 'float':
+        case 'string':
+          $this->executable .= " $option_name=%s";
+          $this->arguments[] = $option_value;
+          break;
+
+        case 'array':
+          $this->executable .= " $option_name=%s";
+          $this->arguments[] = implode(',', $option_value);
+          break;
+
+      }
+    }
+  }
+
+  /**
+   * @return array
+   */
+  protected function build() {
+    $cmd = array(
+      'executable' => $this->executable,
+    );
 
     $cmd = array_merge($cmd, $this->arguments);
 
@@ -106,18 +179,6 @@ class Command {
     }
 
     // Numeric indexed array.
-    $cmd = array_values($cmd);
-
-    if ($this->workingDir) {
-      $cwd = getcwd();
-      drush_op('chdir', $this->workingDir);
-      $result = _drush_shell_exec($cmd, $this->interactive());
-      drush_op('chdir', $cwd);
-
-      return $result;
-    }
-    else {
-      return _drush_shell_exec($cmd, $this->interactive());
-    }
+    return array_values($cmd);
   }
 }

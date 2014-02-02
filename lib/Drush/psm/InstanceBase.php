@@ -93,7 +93,20 @@ abstract class InstanceBase implements InstanceInterface {
    *   Instance definition.
    */
   protected function __construct(array $info) {
-    $this->info = $info;
+    $this->info = _psm_array_merge_deep(array($this->defaultInfo($info), $info));
+  }
+
+  /**
+   * Add default values to instance definition.
+   *
+   * @param array $info
+   *   Instance definition.
+   *
+   * @return array
+   *   Defaults.
+   */
+  protected function defaultInfo($info) {
+    return array();
   }
 
   /**
@@ -391,10 +404,11 @@ abstract class InstanceBase implements InstanceInterface {
   protected function getStartCommand() {
     $command = new Command();
 
-    $command->workingDir = $this->getInfoEntry('working_dir', FALSE, '');
+    $command->daemon = $this->getInfoEntry('daemon', FALSE);
+    $command->workingDir = $this->getInfoEntry('working_dir', FALSE);
     $command->executable = $this->getInfoEntry('executable');
-    $command->redirectStd = $this->getInfoEntry('log_file_std', FALSE, '');
-    $command->redirectError = $this->getInfoEntry('log_file_error', FALSE, '');
+    $command->redirectStd = $this->getInfoEntry('log_file_std', FALSE);
+    $command->redirectError = $this->getInfoEntry('log_file_error', FALSE);
 
     return $command;
   }

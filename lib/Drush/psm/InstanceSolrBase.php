@@ -36,20 +36,25 @@ abstract class InstanceSolrBase extends InstanceBase {
   /**
    * {@inheritdoc}
    */
+  protected function defaultInfo(array $info) {
+    return array(
+      'daemon' => 'nohup',
+      'log_file_std' => '/dev/null',
+      'log_file_error' => '/dev/null',
+      'status_delay' => 3,
+      'jar' => 'start.jar',
+    );
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   protected function getStartCommand() {
     $command = parent::getStartCommand();
 
-    $options = $this->getInfoEntry('executable_options');
-    foreach ($options as $option_name => $option_value) {
-      if ($option_value === FALSE || $option_value === array()) {
-        continue;
-      }
+    $command->addOptions($this->getInfoEntry('executable_options', FALSE, array()));
 
-      $command->executable .= " $option_name=%s";
-      $command->arguments[] = $option_value;
-    }
-
-    $command->executable = ' -jar %s';
+    $command->executable .= ' -jar %s';
     $command->arguments[] = $this->getInfoEntry('jar');
 
     $command->pidFile = $this->getPidFile();

@@ -50,36 +50,10 @@ class Phpfpm extends InstanceBase {
   protected function getStartCommand() {
     $command = parent::getStartCommand();
 
-    foreach ($this->getExecutableOptions() as $option => $value) {
-      switch ($option) {
-        case 'n':
-        case 'e':
-        case 'D':
-        case 'F':
-        case 'R':
-          if ($value) {
-            $command->executable .= " -$option";
-          }
-          break;
-
-        case 'c':
-        case 'p':
-        case 'y':
-          if ($value) {
-            $command->executable .= " -$option %s";
-            $command->arguments[] = $value;
-          }
-          break;
-
-        case 'g':
-          if ($value) {
-            $command->executable .= ' -g %s';
-            $command->arguments[] = $this->getPidFile();
-          }
-          break;
-
-      }
-    }
+    $options = $this->getExecutableOptions();
+    $pid_file = $this->getPidFile();
+    $options['-g'] = $pid_file ? $pid_file : FALSE;
+    $command->addOptions($options);
 
     return $command;
   }
@@ -93,16 +67,16 @@ class Phpfpm extends InstanceBase {
   protected function getExecutableOptions() {
     $options = $this->getInfoEntry('executable_options', FALSE, array());
     $options += array(
-      'c' => '',
-      'n' => FALSE,
-      'd' => '',
-      'e' => FALSE,
-      'p' => '',
-      'g' => FALSE,
-      'y' => '',
-      'D' => FALSE,
-      'F' => FALSE,
-      'R' => FALSE,
+      '-c' => '',
+      '-n' => FALSE,
+      '-d' => '',
+      '-e' => FALSE,
+      '-p' => '',
+      '-g' => FALSE,
+      '-y' => '',
+      '-D' => FALSE,
+      '-F' => FALSE,
+      '-R' => FALSE,
     );
 
     return $options;

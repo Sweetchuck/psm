@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Drush integration of the Personal Service Manager.
+ * Personal Service Manager.
  */
 
 /**
@@ -72,7 +72,8 @@ function psm_drush_command() {
         'default' => 'table',
         'pipe-format' => 'list',
         'field-labels' => array(
-          'service' => dt('Service'),
+          'service_label' => dt('Service'),
+          'service_name' => dt('Service ID'),
           'name' => dt('Name'),
           'label' => dt('Label'),
           'description' => dt('Description'),
@@ -114,8 +115,7 @@ function psm_drush_command() {
     'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
     'required-arguments' => FALSE,
     'arguments' => array(
-      'service' => dt('Name of the service.'),
-      'instance' => dt('Name of the service.'),
+      'instance_list' => dt('Name of the instances.'),
     ),
     'options' => array(
       'group' => array(
@@ -144,7 +144,8 @@ function psm_drush_command() {
     'examples' => array(
       'drush psm-status' => dt('Status messages about the all available services and instances.'),
       'drush psm-status memcache' => dt('Status messages about the all instances of the memcache service.'),
-      'drush psm-status memcache 11211' => dt('Status messages of the memcache service which is running on the port 11211.'),
+      'drush psm-status memcache:11211' => dt('Status messages of the memcache service instance where the identifier is 11211.'),
+      'drush psm-status memcache:11211,11212' => dt('Status messages of the memcache service instance where the identifier is 11211 or 11212.'),
     ),
   ) + $base;
 
@@ -297,39 +298,21 @@ function drush_psm_services($name = NULL) {
 /**
  * Implements drush_COMMAND_validate().
  */
-function drush_psm_instances_validate($service_name = NULL, $instance_name = NULL) {
-  if ($service_name) {
-    if (!array_key_exists($service_name, psm_info_service())) {
-      drush_set_error("psm_service_unknown:$service_name");
-    }
-    elseif ($instance_name) {
-      $instances = psm_info_instance();
-      if (array_key_exists($service_name, $instances) && !array_key_exists($instance_name, $instances[$service_name])) {
-        drush_set_error("psm_instance_unknown:$service_name:$instance_name");
-      }
-    }
-  }
-
-  $group_name = drush_get_option('group');
-  if ($group_name) {
-    if ($service_name) {
-      drush_log(dt('The group option is ignored because the service name is specified'), 'warning');
-    }
-
-    $groups = psm_info_group();
-    if (!array_key_exists($group_name, $groups)) {
-      drush_set_error("psm_group_unknown:$group_name");
-    }
-  }
+function drush_psm_instances_validate() {
+  _psm_validate_instance_filter_parameters(
+    implode(':', func_get_args()),
+    drush_get_option('group')
+  );
 }
 
 /**
  * Implements drush_COMMAND().
  */
-function drush_psm_instances($service_name = NULL, $instance_name = NULL) {
-  $group_name = drush_get_option('group', NULL);
+function drush_psm_instances() {
+  $instance_list = implode(';', func_get_args());
+  $instance_list = _psm_parse_instance_list($instance_list);
 
-  $instances = psm_get_instances($service_name, $instance_name, $group_name);
+  $instances = psm_get_instances($instance_list, drush_get_option('group'));
   $services = psm_info_service();
 
   $output = array();
@@ -338,7 +321,8 @@ function drush_psm_instances($service_name = NULL, $instance_name = NULL) {
     foreach ($instance_list as $name => $info) {
       $instance = psm_instance_factory($info);
       $output[$name] = array(
-        'service' => $service['label'],
+        'service_name' => $service_name,
+        'service_label' => $service['label'],
         'name' => $instance->name(),
         'label' => $instance->label(),
         'description' => $instance->description(),
@@ -355,17 +339,21 @@ function drush_psm_instances($service_name = NULL, $instance_name = NULL) {
 /**
  * Implements drush_COMMAND_validate().
  */
-function drush_psm_status_validate($service_name = NULL, $instance_name = NULL) {
-  drush_psm_instances_validate($service_name, $instance_name);
+function drush_psm_status_validate() {
+  _psm_validate_instance_filter_parameters(
+    implode(':', func_get_args()),
+    drush_get_option('group')
+  );
 }
 
 /**
  * Implements drush_COMMAND().
  */
-function drush_psm_status($service_name = NULL, $instance_name = NULL) {
-  $group_name = drush_get_option('group', NULL);
+function drush_psm_status() {
+  $instance_list = implode(';', func_get_args());
+  $instance_list = _psm_parse_instance_list($instance_list);
 
-  $instances = psm_get_instances($service_name, $instance_name, $group_name);
+  $instances = psm_get_instances($instance_list, drush_get_option('group'));
   $output = array();
   foreach ($instances as $instance_list) {
     foreach ($instance_list as $info) {
@@ -384,17 +372,21 @@ function drush_psm_status($service_name = NULL, $instance_name = NULL) {
 /**
  * Implements drush_COMMAND_validate().
  */
-function drush_psm_start_validate($service_name = NULL, $instance_name = NULL) {
-  drush_psm_instances_validate($service_name, $instance_name);
+function drush_psm_start_validate() {
+  _psm_validate_instance_filter_parameters(
+    implode(':', func_get_args()),
+    drush_get_option('group')
+  );
 }
 
 /**
  * Implements drush_COMMAND().
  */
-function drush_psm_start($service_name = NULL, $instance_name = NULL) {
-  $group_name = drush_get_option('group', NULL);
+function drush_psm_start() {
+  $instance_list = implode(':', func_get_args());
+  $instance_list = _psm_parse_instance_list($instance_list);
 
-  $instances = psm_get_instances($service_name, $instance_name, $group_name);
+  $instances = psm_get_instances($instance_list, drush_get_option('group'));
   $output = array();
   foreach ($instances as $instance_list) {
     foreach ($instance_list as $info) {
@@ -425,17 +417,21 @@ function drush_psm_start($service_name = NULL, $instance_name = NULL) {
 /**
  * Implements drush_COMMAND_validate().
  */
-function drush_psm_stop_validate($service_name = NULL, $instance_name = NULL) {
-  drush_psm_instances_validate($service_name, $instance_name);
+function drush_psm_stop_validate() {
+  _psm_validate_instance_filter_parameters(
+    implode(':', func_get_args()),
+    drush_get_option('group')
+  );
 }
 
 /**
  * Implements drush_COMMAND().
  */
-function drush_psm_stop($service_name = NULL, $instance_name = NULL) {
-  $group_name = drush_get_option('group', NULL);
+function drush_psm_stop() {
+  $instance_list = implode(':', func_get_args());
+  $instance_list = _psm_parse_instance_list($instance_list);
 
-  $instances = psm_get_instances($service_name, $instance_name, $group_name);
+  $instances = psm_get_instances($instance_list, drush_get_option('group'));
   $output = array();
   foreach ($instances as $instance_list) {
     foreach ($instance_list as $info) {
@@ -466,17 +462,21 @@ function drush_psm_stop($service_name = NULL, $instance_name = NULL) {
 /**
  * Implements drush_COMMAND_validate().
  */
-function drush_psm_reload_validate($service_name = NULL, $instance_name = NULL) {
-  drush_psm_instances_validate($service_name, $instance_name);
+function drush_psm_reload_validate() {
+  _psm_validate_instance_filter_parameters(
+    implode(':', func_get_args()),
+    drush_get_option('group')
+  );
 }
 
 /**
  * Implements drush_COMMAND().
  */
-function drush_psm_reload($service_name = NULL, $instance_name = NULL) {
-  $group_name = drush_get_option('group', NULL);
+function drush_psm_reload() {
+  $instance_list = implode(':', func_get_args());
+  $instance_list = _psm_parse_instance_list($instance_list);
 
-  $instances = psm_get_instances($service_name, $instance_name, $group_name);
+  $instances = psm_get_instances($instance_list, drush_get_option('group'));
   $output = array();
   foreach ($instances as $instance_list) {
     foreach ($instance_list as $info) {
@@ -507,17 +507,21 @@ function drush_psm_reload($service_name = NULL, $instance_name = NULL) {
 /**
  * Implements drush_COMMAND_validate().
  */
-function drush_psm_restart_validate($service_name = NULL, $instance_name = NULL) {
-  drush_psm_instances_validate($service_name, $instance_name);
+function drush_psm_restart_validate() {
+  _psm_validate_instance_filter_parameters(
+    implode(':', func_get_args()),
+    drush_get_option('group')
+  );
 }
 
 /**
  * Implements drush_COMMAND().
  */
-function drush_psm_restart($service_name = NULL, $instance_name = NULL) {
-  $group_name = drush_get_option('group', NULL);
+function drush_psm_restart() {
+  $instance_list = implode(';', func_get_args());
+  $instance_list = _psm_parse_instance_list($instance_list);
 
-  $instances = psm_get_instances($service_name, $instance_name, $group_name);
+  $instances = psm_get_instances($instance_list, drush_get_option('group'));
   $output = array();
   foreach ($instances as $instance_list) {
     foreach ($instance_list as $info) {
@@ -681,7 +685,7 @@ function psm_psm_service_info() {
     ),
   ) + $base;
 
-  $info['Tomcat'] = array(
+  $info['tomcat'] = array(
     'label' => 'Tomcat',
     'description' => dt('Apache Tomcat is an open source software implementation of the Java Servlet and JavaServer Pages technologies.'),
     'links' => array(
@@ -745,6 +749,10 @@ function psm_info_service($name = NULL) {
       if (is_array($result)) {
         // Fill the default values.
         foreach (array_keys($result) as $service_name) {
+          if (!_psm_valid_machine_name($service_name)) {
+            throw new Exception('Invalid service name.');
+          }
+
           _psm_info_service_defaults($command_file, $service_name, $result[$service_name]);
         }
         $services += $result;
@@ -794,6 +802,10 @@ function psm_info_instance($service = NULL, $name = NULL) {
     // Fill the default values.
     foreach (array_keys($instances_all) as $service_name) {
       foreach (array_keys($instances_all[$service_name]) as $instance_name) {
+        if (!_psm_valid_machine_name($instance_name)) {
+          throw new Exception('Invalid instance name.');
+        }
+
         _psm_info_instance_defaults($service_name, $instance_name, $instances_all[$service_name][$instance_name]);
       }
     }
@@ -849,6 +861,10 @@ function psm_info_group($name = NULL) {
     // Collect the group definitions.
     $groups = drush_command_invoke_all('psm_group_info');
     foreach (array_keys($groups) as $group_name) {
+      if (!_psm_valid_machine_name($group_name)) {
+        throw new Exception('Invalid group name.');
+      }
+
       $groups[$group_name]['name'] = $group_name;
     }
   }
@@ -873,7 +889,7 @@ function psm_info_group($name = NULL) {
  * @return bool
  *   Directory is added or not.
  */
-function psm_autoloader_add_lib_dir($lib_dir){
+function psm_autoloader_add_lib_dir($lib_dir) {
   static $loader = NULL;
 
   if ($loader === NULL) {
@@ -948,10 +964,8 @@ function psm_instance_factory($info, $name = NULL) {
 /**
  * Collect the instances by various filter.
  *
- * @param string|null $service_name
- *   Service identifier.
- * @param string|null $instance_name
- *   Instance identifier. Only used with the $service_name.
+ * @param array|null $instance_list
+ *   Array of instance identifiers.
  * @param string|null $group_name
  *   Group identifier. Only used if the $service_name and the $instance_name are
  *   both omitted.
@@ -960,22 +974,21 @@ function psm_instance_factory($info, $name = NULL) {
  *   Multi dimension array with the instance definitions.
  *   service_name/instance_name/definition.
  */
-function psm_get_instances($service_name = NULL, $instance_name = NULL, $group_name = NULL) {
+function psm_get_instances($instance_list = NULL, $group_name = NULL) {
+  if (!$instance_list && $group_name) {
+    return psm_get_instances_by_group($group_name);
+  }
+
   $instances = psm_info_instance();
-  if (!$service_name && !$instance_name && $group_name) {
-    $instances = psm_get_instances_by_group($group_name);
-  }
-  elseif ($service_name && $instance_name) {
-    $instances = array(
-      $service_name => array(
-        $instance_name => $instances[$service_name][$instance_name],
-      ),
-    );
-  }
-  elseif ($service_name) {
-    $instances = array(
-      $service_name => $instances[$service_name],
-    );
+  if ($instance_list) {
+    $return = array();
+    foreach ($instance_list as $service_name => $list) {
+      $return[$service_name] = (!$list ?
+        $instances[$service_name] : array_intersect_key($instances[$service_name], array_flip($list))
+      );
+    }
+
+    return $return;
   }
 
   return $instances;
@@ -1099,6 +1112,111 @@ function _psm_info_instance_defaults($service_name, $instance_name, array &$info
 }
 
 /**
+ * Helper function to validate the instance filter command line arguments.
+ *
+ * @param string $instance_list
+ *   service_name1.instance_name1,instance_name2
+ * @param string $group_name
+ *   Group identifier.
+ */
+function _psm_validate_instance_filter_parameters($instance_list, $group_name) {
+  $instance_list = _psm_parse_instance_list($instance_list);
+  _psm_validate_instance_list($instance_list);
+
+  if ($group_name) {
+    if ($instance_list) {
+      drush_log(dt('The group option is ignored because the service name is specified'), 'warning');
+    }
+
+    $groups = psm_info_group();
+    if (!array_key_exists($group_name, $groups)) {
+      drush_set_error("psm_group_unknown:$group_name");
+    }
+    else {
+      _psm_validate_instance_list($groups[$group_name]['instances']);
+    }
+  }
+}
+
+/**
+ * Parse the command line argument.
+ *
+ * @param string $list
+ *   service_name1:instance_name1,instance_name2
+ *
+ * @return array
+ *   Instance list.
+ */
+function _psm_parse_instance_list($list) {
+  if (!trim($list)) {
+    return array();
+  }
+
+  $return = array();
+  $instances = psm_info_instance();
+  $service_list = explode(';', $list);
+  foreach ($service_list as $service) {
+    $service_name = $service;
+    $instance_list = array();
+
+    $service = trim($service, ':,;');
+    if (strpos($service, ':')) {
+      list($service_name, $instance_list) = explode(':', $service, 2);
+      $instance_list = explode(',', $instance_list);
+    }
+
+    if (!$instance_list && isset($instances[$service_name])) {
+      // All instances.
+      $instance_list = array_keys($instances[$service_name]);
+    }
+
+    if (!isset($return[$service_name])) {
+      $return[$service_name] = array();
+    }
+
+    $return[$service_name] = array_merge($return[$service_name], $instance_list);
+  }
+
+  foreach (array_keys($return) as $service_name) {
+    $return[$service_name] = array_unique($return[$service_name]);
+  }
+
+  return $return;
+}
+
+/**
+ * Instance list validator.
+ *
+ * @param array $instance_list
+ *   Instance list.
+ */
+function _psm_validate_instance_list($instance_list) {
+  $instances = psm_info_instance();
+
+  foreach ($instance_list as $service_name => $list) {
+    if (!isset($instances[$service_name])) {
+      drush_set_error("psm_service_unknown:$service_name");
+
+      continue;
+    }
+
+    $instance_names = array_diff($list, array_keys($instances[$service_name]));
+    foreach ($instance_names as $instance_name) {
+      drush_set_error("psm_instance_unknown:$service_name:$instance_name");
+    }
+  }
+}
+
+/**
+ * @param string $name
+ *
+ * @return bool
+ */
+function _psm_valid_machine_name($name) {
+  return preg_match('/^[a-z0-9][a-z0-9_-]*$/', $name) && !preg_match('/(_|-){2,}/', $name);
+}
+
+/**
  * Transform a snake case machine name to camel case.
  *
  * @param string $name
@@ -1189,4 +1307,31 @@ function _psm_config_files($subject, $paths = NULL) {
  */
 function _psm_config_paths() {
   return (array) drush_get_context('ALIAS_PATH', array());
+}
+
+/**
+ * Merges multiple arrays, recursively, and returns the merged array.
+ */
+function _psm_array_merge_deep(array $arrays, $preserve_integer_keys = FALSE) {
+  $result = array();
+  foreach ($arrays as $array) {
+    foreach ($array as $key => $value) {
+      // Renumber integer keys as array_merge_recursive() does unless
+      // $preserve_integer_keys is set to TRUE. Note that PHP automatically
+      // converts array keys that are integer strings (e.g., '1') to integers.
+      if (is_int($key) && !$preserve_integer_keys) {
+        $result[] = $value;
+      }
+      // Recurse when both values are arrays.
+      elseif (isset($result[$key]) && is_array($result[$key]) && is_array($value)) {
+        $result[$key] = _psm_array_merge_deep(array($result[$key], $value), $preserve_integer_keys);
+      }
+      // Otherwise, use the latter value, overriding any previous value.
+      else {
+        $result[$key] = $value;
+      }
+    }
+  }
+
+  return $result;
 }

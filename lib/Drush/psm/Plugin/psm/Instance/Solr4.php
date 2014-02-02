@@ -62,23 +62,20 @@ class Solr4 extends InstanceSolrBase {
   protected function getStartCommand() {
     $command = new Command();
 
-    $command->daemon = $this->getInfoEntry('daemon', FALSE, '');
-    $command->workingDir = $this->getInfoEntry('working_dir', FALSE, '');
+    $command->daemon = $this->getInfoEntry('daemon', FALSE);
+    $command->workingDir = $this->getInfoEntry('working_dir', FALSE);
     $command->executable = $this->getInfoEntry('executable');
-    $command->redirectStd = $this->getInfoEntry('log_file_std', FALSE, '');
-    $command->redirectError = $this->getInfoEntry('log_file_error', FALSE, '');
+    $command->redirectStd = $this->getInfoEntry('log_file_std', FALSE);
+    $command->redirectError = $this->getInfoEntry('log_file_error', FALSE);
 
-    $this->addOptions($command, $this->getInfoEntry('jvm_options', FALSE, array()));
+    $command->addOptions($this->getInfoEntry('jvm_options', FALSE, array()));
 
     $command->executable .= ' -jar %s';
     $command->arguments[] = $this->getInfoEntry('jar');
 
-    $this->addOptions($command, $this->getInfoEntry('executable_options', FALSE, array()));
+    $command->addOptions($this->getInfoEntry('executable_options', FALSE, array()));
 
-    $pid_file = $this->getInfoEntry('pid_file');
-    if ($pid_file) {
-      $command->pidFile = $pid_file;
-    }
+    $command->pidFile = $this->getInfoEntry('pid_file', FALSE);
 
     return $command;
   }
@@ -92,48 +89,12 @@ class Solr4 extends InstanceSolrBase {
     $command->workingDir = $this->getInfoEntry('working_dir', FALSE, '');
     $command->executable = $this->getInfoEntry('executable');
 
-    $this->addOptions($command, $this->getInfoEntry('jvm_options', FALSE, array()));
+    $command->addOptions($this->getInfoEntry('jvm_options', FALSE, array()));
 
     $command->executable .= ' -jar %s --stop';
     $command->arguments[] = $this->getInfoEntry('jar');
 
     return $command;
-  }
-
-  protected function addOptions($command, $options) {
-    foreach ($options as $option_name => $option_value) {
-      if ($option_value === FALSE || $option_value === array()) {
-        continue;
-      }
-
-      switch ($option_name) {
-        // Flag.
-        case '--exec':
-        case '--daemon':
-        case '-DDEBUG':
-          $command->executable .= " $option_name";
-          break;
-
-        // Key-value.
-        case '--config':
-        case '--init':
-        case '--pre':
-        case '-Dpath':
-        case '-Dlib':
-        case '-DSTOP.PORT':
-        case '-DSTOP.KEY':
-        case '-DSTOP.WAIT':
-        case '-DOPTION':
-          if (is_array($option_value)) {
-            $option_value = implode(',', $option_value);
-          }
-
-          $command->executable .= " $option_name=%s";
-          $command->arguments[] = $option_value;
-          break;
-
-      }
-    }
   }
 
 }

@@ -1109,6 +1109,9 @@ function _psm_info_service_defaults($command_file, $service_name, array &$info =
 function _psm_info_instance_defaults($service_name, $instance_name, array &$info = array()) {
   $info['service'] = $service_name;
   $info['name'] = $instance_name;
+  $info += array(
+    'label' => $instance_name,
+  );
 }
 
 /**

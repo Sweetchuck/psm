@@ -445,6 +445,11 @@ abstract class InstanceBase implements InstanceInterface {
     return $command;
   }
 
+  /**
+   * Delete the PID file.
+   *
+   * Use only if you absolutely sure the PID file is invalid.
+   */
   protected function cleanPidFile() {
     $pid_file = $this->getPidFile();
     if ($pid_file) {

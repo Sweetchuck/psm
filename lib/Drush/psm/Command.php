@@ -69,6 +69,14 @@ class Command {
     return vsprintf($cmd, $args);
   }
 
+  /**
+   * Check we need to run the command in interactive mode.
+   *
+   * This is useful for redirects the outputs into a custom file.
+   *
+   * @return bool
+   *   TRUE if we want to suppress the internal output redirect of Drush.
+   */
   public function interactive() {
     return $this->interactive || $this->redirectStd || $this->redirectError;
   }
@@ -133,7 +141,11 @@ class Command {
   }
 
   /**
+   * Assemble the command string fragments into one array.
+   *
    * @return array
+   *   The first item is the command string with the placeholders of the
+   *   arguments in it. And the rest items are the placeholder values.
    */
   protected function build() {
     $cmd = array(

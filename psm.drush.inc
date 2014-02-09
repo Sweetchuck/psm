@@ -1211,9 +1211,13 @@ function _psm_validate_instance_list($instance_list) {
 }
 
 /**
+ * Check the $name is a valid machine name.
+ *
  * @param string $name
+ *   Machine name suggestion.
  *
  * @return bool
+ *   TRUE if the $name is a valid machine name or FALSE otherwise.
  */
 function _psm_valid_machine_name($name) {
   return preg_match('/^[a-z0-9][a-z0-9_-]*$/', $name) && !preg_match('/(_|-){2,}/', $name);

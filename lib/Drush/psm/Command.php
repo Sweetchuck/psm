@@ -154,15 +154,8 @@ class Command {
 
     $cmd = array_merge($cmd, $this->arguments);
 
-    switch ($this->daemon) {
-      case 'background':
-        $cmd['executable'] .= ' &';
-        break;
-
-      case 'nohup':
-        $cmd['executable'] = 'nohup ' . $cmd['executable'] . ' &';
-        break;
-
+    if ($this->daemon === 'nohup') {
+      $cmd['executable'] = 'nohup ' . $cmd['executable'] . ' &';
     }
 
     if (!empty($this->redirectStd)) {
@@ -170,7 +163,7 @@ class Command {
         $cmd['executable'] .= ' >&2';
       }
       else {
-        $cmd['executable'] .= ' >%s';
+        $cmd['executable'] .= ' > %s';
         $cmd[] = $this->redirectStd;
       }
     }
@@ -180,9 +173,13 @@ class Command {
         $cmd['executable'] .= ' 2>&1';
       }
       else {
-        $cmd['executable'] .= ' 2>%s';
+        $cmd['executable'] .= ' 2> %s';
         $cmd[] = $this->redirectError;
       }
+    }
+
+    if ($this->daemon === 'background') {
+      $cmd['executable'] .= ' &';
     }
 
     if (!empty($this->pidFile)) {

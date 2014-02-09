@@ -160,13 +160,13 @@ abstract class InstanceBase implements InstanceInterface {
   public function version() {
     if ($this->versionNumber === NULL) {
       $this->versionNumber = '';
-      $cmd = escapeshellcmd($this->getInfoEntry('executable', FALSE));
+      $cmd = $this->getInfoEntry('executable_version', FALSE, $this->getInfoEntry('executable', FALSE));
       if ($cmd && $this->versionOption !== NULL) {
         if (!is_executable($cmd)) {
           throw new \Exception('Not executable: ' . $cmd, 1);
         }
 
-        $cmd .= ' ' . $this->versionOption;
+        $cmd = escapeshellcmd($cmd) . ' ' . $this->versionOption;
         if (drush_shell_exec($cmd)) {
           $output = implode("\n", (array) drush_shell_exec_output());
           $matches = array('version' => '');

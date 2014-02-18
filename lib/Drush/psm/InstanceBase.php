@@ -215,7 +215,12 @@ abstract class InstanceBase implements InstanceInterface {
       return TRUE;
     }
 
-    return $this->getStopCommand()->run() && !$this->status(TRUE);
+    $return = $this->getStopCommand()->run() && !$this->status(TRUE);
+    if ($return) {
+      $this->cleanPidFile();
+    }
+
+    return $return;
   }
 
   /**
@@ -452,7 +457,7 @@ abstract class InstanceBase implements InstanceInterface {
    */
   protected function cleanPidFile() {
     $pid_file = $this->getPidFile();
-    if ($pid_file) {
+    if ($pid_file && is_file($pid_file)) {
       unlink($pid_file);
     }
   }

@@ -105,7 +105,7 @@ abstract class InstanceBase implements InstanceInterface {
    * @return array
    *   Defaults.
    */
-  protected function defaultInfo($info) {
+  protected function defaultInfo(array $info) {
     return array();
   }
 

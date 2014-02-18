@@ -9,7 +9,26 @@ namespace Drush\psm\Plugin\psm\Instance;
 use Drush\psm\Command;
 use Drush\psm\InstanceBase;
 
+/**
+ * Selenium instance handler class.
+ */
 class Selenium extends InstanceBase {
+
+  /**
+   * {@inheritdoc}
+   */
+  protected static $executableNames = array(
+    'selenium-server-standalone.jar',
+  );
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function defaultInfo(array $info) {
+    return array(
+      'daemon' => 'nohup',
+    ) + parent::defaultInfo($info);
+  }
 
   /**
    * {@inheritdoc}
@@ -25,15 +44,6 @@ class Selenium extends InstanceBase {
     }
 
     return $this->versionNumber;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  protected function defaultInfo(array $info) {
-    return array(
-      'daemon' => 'nohup',
-    ) + parent::defaultInfo($info);
   }
 
   /**

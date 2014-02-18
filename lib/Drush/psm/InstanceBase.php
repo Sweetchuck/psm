@@ -47,6 +47,21 @@ abstract class InstanceBase implements InstanceInterface {
   protected static $defaultStatusDelay = 0;
 
   /**
+   * @var string[]
+   */
+  protected static $executableDirs = array(
+    '/usr/local/sbin',
+    '/usr/local/bin',
+    '/usr/sbin',
+    '/usr/bin',
+  );
+
+  /**
+   * @var string[]
+   */
+  protected static $executableNames = array();
+
+  /**
    * Instance definition.
    *
    * @var array
@@ -87,6 +102,33 @@ abstract class InstanceBase implements InstanceInterface {
   }
 
   /**
+   * {@inheritdoc}
+   */
+  public static function defaultInfo(array $info) {
+    $service = psm_info_service($info['service']);
+    $default = array(
+      'label' => $info['name'],
+      'description' => dt('Standard @service service.', array(
+          '@service' => $service['label'],
+        )),
+      'status_delay' => 3,
+    );
+
+    if (empty($info['executable'])) {
+      foreach (static::$executableDirs as $dir) {
+        foreach (static::$executableNames as $name) {
+          if (is_executable("$dir/$name")) {
+            $default['executable'] = "$dir/$name";
+            break;
+          }
+        }
+      }
+    }
+
+    return $default;
+  }
+
+  /**
    * Create an instance handler.
    *
    * @param array $info
@@ -94,19 +136,6 @@ abstract class InstanceBase implements InstanceInterface {
    */
   protected function __construct(array $info) {
     $this->info = _psm_array_merge_deep(array($this->defaultInfo($info), $info));
-  }
-
-  /**
-   * Add default values to instance definition.
-   *
-   * @param array $info
-   *   Instance definition.
-   *
-   * @return array
-   *   Defaults.
-   */
-  protected function defaultInfo(array $info) {
-    return array();
   }
 
   /**

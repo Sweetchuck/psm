@@ -26,6 +26,17 @@ interface InstanceInterface {
   public static function factory(array $info);
 
   /**
+   * Populate the default values.
+   *
+   * @param array $info
+   *   Instance info array.
+   *
+   * @return array
+   *   Instance info array.
+   */
+  public static function defaultInfo(array $info);
+
+  /**
    * Get instance definition.
    *
    * @return array

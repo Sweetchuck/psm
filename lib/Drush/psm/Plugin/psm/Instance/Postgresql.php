@@ -17,14 +17,20 @@ class Postgresql extends InstanceBase {
   /**
    * {@inheritdoc}
    */
+  protected static $executableNames = array(
+    'postgres',
+  );
+
+  /**
+   * {@inheritdoc}
+   */
   protected $versionOption = '--version';
 
   /**
    * {@inheritdoc}
    */
-  protected function defaultInfo(array $info) {
+  public static function defaultInfo(array $info) {
     return array(
-      'status_delay' => 3,
       'daemon' => 'nohup',
     ) + parent::defaultInfo($info);
   }

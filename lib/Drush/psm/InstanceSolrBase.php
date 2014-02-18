@@ -36,14 +36,13 @@ abstract class InstanceSolrBase extends InstanceBase {
   /**
    * {@inheritdoc}
    */
-  protected function defaultInfo(array $info) {
+  public static function defaultInfo(array $info) {
     return array(
       'daemon' => 'nohup',
       'log_file_std' => '/dev/null',
       'log_file_error' => '/dev/null',
-      'status_delay' => 3,
       'jar' => 'start.jar',
-    );
+    ) + parent::defaultInfo($info);
   }
 
   /**

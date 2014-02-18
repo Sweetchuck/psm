@@ -18,6 +18,13 @@ class Mysql extends InstanceBase {
   /**
    * {@inheritdoc}
    */
+  protected static $executableNames = array(
+    'mysql_safe',
+  );
+
+  /**
+   * {@inheritdoc}
+   */
   protected $versionOption = '--help';
 
   /**
@@ -28,24 +35,23 @@ class Mysql extends InstanceBase {
   /**
    * {@inheritdoc}
    */
-  protected function defaultInfo(array $info) {
-    $info += array(
-      'status_delay' => 3,
+  public static function defaultInfo(array $info) {
+    $default = array(
       'daemon' => 'background',
       'base_dir' => '/usr',
       'log_file_std' => '/dev/null',
       'log_file_error' => '&1',
     );
 
-    if (!empty($info['base_dir'])) {
-      $info += array(
-        'executable' => "{$info['base_dir']}/bin/mysqld_safe",
-        'executable_version' => "{$info['base_dir']}/bin/mysqld",
-        'executable_admin' => "{$info['base_dir']}/bin/mysqladmin",
-      );
-    }
+    $base_dir = !empty($info['base_dir']) ? $info['base_dir'] : $default['base_dir'];
+    $default += array(
+      'working_dir' => $base_dir,
+      'executable' => "{$base_dir}/bin/mysqld_safe",
+      'executable_version' => "{$base_dir}/bin/mysqld",
+      'executable_admin' => "{$base_dir}/bin/mysqladmin",
+    );
 
-    return $info;
+    return $default + parent::defaultInfo($info);
   }
 
   /**

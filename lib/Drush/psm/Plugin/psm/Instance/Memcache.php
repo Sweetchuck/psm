@@ -15,6 +15,13 @@ use Drush\psm\InstanceBase;
 class Memcache extends InstanceBase {
 
   /**
+   * {@inheritdoc}
+   */
+  protected static $executableNames = array(
+    'memcached',
+  );
+
+  /**
    * @var string
    */
   protected $versionOption = '-h';

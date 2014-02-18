@@ -17,6 +17,13 @@ class Phpfpm extends InstanceBase {
   /**
    * {@inheritdoc}
    */
+  protected static $executableNames = array(
+    'php-fpm',
+  );
+
+  /**
+   * {@inheritdoc}
+   */
   public function stop() {
     $pid = $this->status();
     if (!$pid) {

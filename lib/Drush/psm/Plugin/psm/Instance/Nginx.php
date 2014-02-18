@@ -20,6 +20,13 @@ class Nginx extends InstanceBase {
   /**
    * {@inheritdoc}
    */
+  protected static $executableNames = array(
+    'nginx',
+  );
+
+  /**
+   * {@inheritdoc}
+   */
   protected function sendSignal($signal) {
     $arg = NULL;
 

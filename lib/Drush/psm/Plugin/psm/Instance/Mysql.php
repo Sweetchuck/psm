@@ -28,7 +28,7 @@ class Mysql extends InstanceBase {
   /**
    * {@inheritdoc}
    */
-  protected function defaultInfo($info) {
+  protected function defaultInfo(array $info) {
     $info += array(
       'status_delay' => 3,
       'daemon' => 'background',

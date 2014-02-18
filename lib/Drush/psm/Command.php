@@ -53,6 +53,13 @@ class Command {
   public $interactive = FALSE;
 
   /**
+   * @var array
+   */
+  public $optionProperties = array(
+    'key_value_separator' => '=',
+  );
+
+  /**
    * Cast to string.
    *
    * @return string
@@ -108,8 +115,13 @@ class Command {
    *
    * @param array $options
    *   Array of command line options.
+   * @param array $properties
+   *   Properties how to handle the options.
    */
-  public function addOptions(array $options) {
+  public function addOptions(array $options, array $properties = array()) {
+    $properties += $this->optionProperties;
+    $kvs = $properties['key_value_separator'];
+
     foreach ($options as $option_name => $option_value) {
       if ($option_value === FALSE
         || $option_value === array()
@@ -127,12 +139,12 @@ class Command {
         case 'double':
         case 'float':
         case 'string':
-          $this->executable .= " $option_name=%s";
+          $this->executable .= " {$option_name}{$kvs}%s";
           $this->arguments[] = $option_value;
           break;
 
         case 'array':
-          $this->executable .= " $option_name=%s";
+          $this->executable .= " {$option_name}{$kvs}%s";
           $this->arguments[] = implode(',', $option_value);
           break;
 

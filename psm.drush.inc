@@ -65,7 +65,7 @@ function psm_drush_command() {
     'examples' => array(
       'drush psm-instances' => dt('Description of what this command will do.'),
       'drush psm-instances memcache' => dt('Description of what this command will do.'),
-      'drush psm-instances memcache 3306' => dt('Description of what this command will do.'),
+      'drush psm-instances memcache.3306' => dt('Description of what this command will do.'),
     ),
     'engines' => array(
       'outputformat' => array(
@@ -144,8 +144,8 @@ function psm_drush_command() {
     'examples' => array(
       'drush psm-status' => dt('Status messages about the all available services and instances.'),
       'drush psm-status memcache' => dt('Status messages about the all instances of the memcache service.'),
-      'drush psm-status memcache:11211' => dt('Status messages of the memcache service instance where the identifier is 11211.'),
-      'drush psm-status memcache:11211,11212' => dt('Status messages of the memcache service instance where the identifier is 11211 or 11212.'),
+      'drush psm-status memcache.11211' => dt('Status messages of the memcache service instance where the identifier is 11211.'),
+      'drush psm-status memcache.11211,11212' => dt('Status messages of the memcache service instance where the identifier is 11211 or 11212.'),
     ),
   ) + $base;
 
@@ -154,7 +154,7 @@ function psm_drush_command() {
     'examples' => array(
       'drush psm-start' => dt('Start the all available instances of all available services.'),
       'drush psm-start memcache' => dt('@todo'),
-      'drush psm-start memcache 11211' => dt('@todo.'),
+      'drush psm-start memcache.11211' => dt('@todo.'),
     ),
   ) + $base;
 
@@ -163,7 +163,7 @@ function psm_drush_command() {
     'examples' => array(
       'drush psm-stop' => dt('Stop the all available instances of all available services.'),
       'drush psm-stop memcache' => dt('@todo'),
-      'drush psm-stop memcache 11211' => dt('@todo.'),
+      'drush psm-stop memcache.11211' => dt('@todo.'),
     ),
   ) + $base;
 
@@ -172,7 +172,7 @@ function psm_drush_command() {
     'examples' => array(
       'drush psm-restart' => dt('Restart the all available instances of all available services.'),
       'drush psm-restart memcache' => dt('@todo'),
-      'drush psm-restart memcache 11211' => dt('@todo.'),
+      'drush psm-restart memcache.11211' => dt('@todo.'),
     ),
   ) + $base;
 
@@ -181,7 +181,7 @@ function psm_drush_command() {
     'examples' => array(
       'drush psm-reload' => dt('Restart the all available instances of all available services.'),
       'drush psm-reload memcache' => dt('@todo'),
-      'drush psm-reload memcache 11211' => dt('@todo.'),
+      'drush psm-reload memcache.11211' => dt('@todo.'),
     ),
   ) + $base;
 
@@ -264,6 +264,13 @@ function psm_drush_help($subject = NULL) {
 }
 
 /**
+ * Implements drush_COMMAND_init().
+ */
+function drush_psm_services_init() {
+  psm_autoloader_add_lib_dirs();
+}
+
+/**
  * Implements drush_COMMAND_validate().
  */
 function drush_psm_services_validate($name = NULL) {
@@ -296,6 +303,13 @@ function drush_psm_services($name = NULL) {
 }
 
 /**
+ * Implements drush_COMMAND_init().
+ */
+function drush_psm_instances_init() {
+  psm_autoloader_add_lib_dirs();
+}
+
+/**
  * Implements drush_COMMAND_validate().
  */
 function drush_psm_instances_validate() {
@@ -309,7 +323,7 @@ function drush_psm_instances_validate() {
  * Implements drush_COMMAND().
  */
 function drush_psm_instances() {
-  $instance_list = implode(';', func_get_args());
+  $instance_list = implode(':', func_get_args());
   $instance_list = _psm_parse_instance_list($instance_list);
 
   $instances = psm_get_instances($instance_list, drush_get_option('group'));
@@ -337,6 +351,13 @@ function drush_psm_instances() {
 }
 
 /**
+ * Implements drush_COMMAND_init().
+ */
+function drush_psm_status_init() {
+  psm_autoloader_add_lib_dirs();
+}
+
+/**
  * Implements drush_COMMAND_validate().
  */
 function drush_psm_status_validate() {
@@ -350,7 +371,7 @@ function drush_psm_status_validate() {
  * Implements drush_COMMAND().
  */
 function drush_psm_status() {
-  $instance_list = implode(';', func_get_args());
+  $instance_list = implode(':', func_get_args());
   $instance_list = _psm_parse_instance_list($instance_list);
 
   $instances = psm_get_instances($instance_list, drush_get_option('group'));
@@ -367,6 +388,13 @@ function drush_psm_status() {
   }
 
   return $output;
+}
+
+/**
+ * Implements drush_COMMAND_init().
+ */
+function drush_psm_start_init() {
+  psm_autoloader_add_lib_dirs();
 }
 
 /**
@@ -415,6 +443,13 @@ function drush_psm_start() {
 }
 
 /**
+ * Implements drush_COMMAND_init().
+ */
+function drush_psm_stop_init() {
+  psm_autoloader_add_lib_dirs();
+}
+
+/**
  * Implements drush_COMMAND_validate().
  */
 function drush_psm_stop_validate() {
@@ -457,6 +492,13 @@ function drush_psm_stop() {
   }
 
   return $output;
+}
+
+/**
+ * Implements drush_COMMAND_init().
+ */
+function drush_psm_reload_init() {
+  psm_autoloader_add_lib_dirs();
 }
 
 /**
@@ -505,6 +547,13 @@ function drush_psm_reload() {
 }
 
 /**
+ * Implements drush_COMMAND_init().
+ */
+function drush_psm_restart_init() {
+  psm_autoloader_add_lib_dirs();
+}
+
+/**
  * Implements drush_COMMAND_validate().
  */
 function drush_psm_restart_validate() {
@@ -518,7 +567,7 @@ function drush_psm_restart_validate() {
  * Implements drush_COMMAND().
  */
 function drush_psm_restart() {
-  $instance_list = implode(';', func_get_args());
+  $instance_list = implode(':', func_get_args());
   $instance_list = _psm_parse_instance_list($instance_list);
 
   $instances = psm_get_instances($instance_list, drush_get_option('group'));
@@ -547,6 +596,13 @@ function drush_psm_restart() {
   }
 
   return $output;
+}
+
+/**
+ * Implements drush_COMMAND_init().
+ */
+function drush_psm_groups_init() {
+  psm_autoloader_add_lib_dirs();
 }
 
 /**
@@ -740,6 +796,14 @@ function psm_psm_group_info() {
 function psm_info_service($name = NULL) {
   static $services = NULL;
 
+  $cache_id = drush_get_cid(__FUNCTION__);
+  if ($services === NULL) {
+    $cache = drush_cache_get($cache_id);
+    if ($cache && !empty($cache->data)) {
+      $services = $cache->data;
+    }
+  }
+
   if ($services === NULL) {
     $services = array();
     // Collect the service definitions.
@@ -760,13 +824,9 @@ function psm_info_service($name = NULL) {
     }
 
     // Allow to other modules to alter the service definitions.
-    drush_command_invoke_all('psm_service_info_alter', $services);
+    drush_command_invoke_all_ref('psm_service_info_alter', $services);
 
-    foreach (array_keys($services) as $service_name) {
-      if (!empty($services[$service_name]['lib_dir'])) {
-        psm_autoloader_add_lib_dir($services[$service_name]['lib_dir']);
-      }
-    }
+    drush_cache_set($cache_id, $services);
   }
 
   if ($name) {
@@ -795,6 +855,14 @@ function psm_info_service($name = NULL) {
 function psm_info_instance($service = NULL, $name = NULL) {
   static $instances_all = NULL;
 
+  $cache_id = drush_get_cid(__FUNCTION__);
+  if ($instances_all === NULL) {
+    $cache = drush_cache_get($cache_id);
+    if ($cache && !empty($cache->data)) {
+      $instances_all = $cache->data;
+    }
+  }
+
   if ($instances_all === NULL) {
     // Collect the service definitions.
     $instances_all = drush_command_invoke_all('psm_instance_info');
@@ -810,16 +878,17 @@ function psm_info_instance($service = NULL, $name = NULL) {
       }
     }
 
-    // Allow to other modules to alter the service definitions.
-    drush_command_invoke_all('psm_instance_info_alter', $instances_all);
+    // Allow to other modules to alter the instance definitions.
+    drush_command_invoke_all_ref('psm_instance_info_alter', $instances_all);
 
-    foreach ($instances_all as $instances) {
-      foreach ($instances as $instance) {
-        if (!empty($instance['lib_dir'])) {
-          psm_autoloader_add_lib_dir($instance['lib_dir']);
-        }
+    foreach (array_keys($instances_all) as $service_name) {
+      foreach (array_keys($instances_all[$service_name]) as $instance_name) {
+        $class = psm_instance_get_class($instances_all[$service_name][$instance_name]);
+        $instances_all[$service_name][$instance_name] += $class::defaultInfo($instances_all[$service_name][$instance_name]);
       }
     }
+
+    drush_cache_set($cache_id, $instances_all);
   }
 
   if ($service) {
@@ -857,6 +926,14 @@ function psm_info_instance($service = NULL, $name = NULL) {
 function psm_info_group($name = NULL) {
   static $groups = NULL;
 
+  $cache_id = drush_get_cid(__FUNCTION__);
+  if ($groups === NULL) {
+    $cache = drush_cache_get($cache_id);
+    if ($cache && !empty($cache->data)) {
+      $groups = $cache->data;
+    }
+  }
+
   if ($groups === NULL) {
     // Collect the group definitions.
     $groups = drush_command_invoke_all('psm_group_info');
@@ -867,6 +944,11 @@ function psm_info_group($name = NULL) {
 
       $groups[$group_name]['name'] = $group_name;
     }
+
+    // Allow to other modules to alter the group definitions.
+    drush_command_invoke_all('psm_group_info_alter', $groups);
+
+    drush_cache_set($cache_id, $groups);
   }
 
   if ($name) {
@@ -878,6 +960,21 @@ function psm_info_group($name = NULL) {
   }
 
   return $groups;
+}
+
+/**
+ * Add all lib directory to the autoloader.
+ */
+function psm_autoloader_add_lib_dirs() {
+  foreach (drush_commandfile_list() as $file_path) {
+    $dir = dirname($file_path);
+    if (is_dir("$dir/lib")) {
+      psm_autoloader_add_lib_dir("$dir/lib");
+    }
+    elseif (preg_match('@.+/includes$@', $dir) && is_dir("$dir/../lib")) {
+      psm_autoloader_add_lib_dir("$dir/../lib");
+    }
+  }
 }
 
 /**
@@ -895,9 +992,9 @@ function psm_autoloader_add_lib_dir($lib_dir) {
   if ($loader === NULL) {
     // Register the lib dir to autoloader.
     $command_files = drush_commandfile_list();
-    $command_file_dir = dirname($command_files['psm']);
+    $psm_dir = dirname($command_files['psm']);
     try {
-      $loader = require "$command_file_dir/vendor/autoload.php";
+      $loader = require "$psm_dir/vendor/autoload.php";
     }
     catch (Exception $e) {
       $loader = FALSE;
@@ -936,8 +1033,23 @@ function psm_instance_factory($info, $name = NULL) {
     $info = $instances[$info][$name];
   }
 
-  // Make sure the autoloader is prepared.
-  // @todo Better place to initialize the autoloader.
+  $class = psm_instance_get_class($info);
+
+  return $class::factory($info);
+}
+
+/**
+ * Get instance handler class name.
+ *
+ * @param array $info
+ *   Instance definition.
+ *
+ * @return string
+ *   Name of the instance handler class.
+ *
+ * @throws Exception
+ */
+function psm_instance_get_class(array $info) {
   $service = psm_info_service($info['service']);
   if (!empty($info['class'])) {
     $class = $info['class'];
@@ -954,11 +1066,14 @@ function psm_instance_factory($info, $name = NULL) {
       $class = $service['class'];
     }
   }
-  else {
+  elseif (!empty($service['class'])) {
     $class = $service['class'];
   }
+  else {
+    throw new Exception('Instance handler is not defined.');
+  }
 
-  return $class::factory($info);
+  return $class;
 }
 
 /**
@@ -1061,11 +1176,6 @@ function _psm_info_service_defaults($command_file, $service_name, array &$info =
     // Human name of the service
     // Required.
     'label' => $service_name,
-    // Long description.
-    // Optional.
-    'description' => NULL,
-
-    'lib_dir' => NULL,
     'class' => '',
   );
 
@@ -1078,18 +1188,6 @@ function _psm_info_service_defaults($command_file, $service_name, array &$info =
       'Instance',
       _psm_camel_case($service_name),
     ));
-  }
-
-  if (empty($info['lib_dir']) && $info['command_file']) {
-    $command_files = drush_commandfile_list();
-    $command_file_dir = dirname($command_files[$info['command_file']]);
-
-    if (is_dir("$command_file_dir/lib")) {
-      $info['lib_dir'] = "$command_file_dir/lib";
-    }
-    elseif (preg_match('@.+/includes$@', $command_file_dir) && is_dir("$command_file_dir/../lib")) {
-      $info['lib_dir'] = "$command_file_dir/../lib";
-    }
   }
 }
 
@@ -1157,14 +1255,14 @@ function _psm_parse_instance_list($list) {
 
   $return = array();
   $instances = psm_info_instance();
-  $service_list = explode(';', $list);
+  $service_list = explode(':', $list);
   foreach ($service_list as $service) {
     $service_name = $service;
     $instance_list = array();
 
-    $service = trim($service, ':,;');
-    if (strpos($service, ':')) {
-      list($service_name, $instance_list) = explode(':', $service, 2);
+    $service = trim($service, ':,.');
+    if (strpos($service, '.')) {
+      list($service_name, $instance_list) = explode('.', $service, 2);
       $instance_list = explode(',', $instance_list);
     }
 

@@ -4,10 +4,71 @@
  * @file
  * Service instance definitions for Personal Services Manager.
  *
- * This file must be in this directory: ~/.drush
+ * File name: ~/.drush/instances.psm.drushrc.php
  */
 
-foreach (array('5.5.5', '5.4.21', '5.3.27', '5.3.17', '5.3.10') as $version) {
+/**
+ * Add the instance definition to the $instances variable.
+ *
+ * The first level key is the machine name of the service.
+ * To list the available services run:
+ * `drush psm-services  --fields=name --field-labels=0`
+ *
+ * The second level key is a custom machine name of the instance and the value
+ * is an array with the properties of the instance.
+ * <code>
+ * $instances = array(
+ *   'mysql' => array(
+ *     'my_mysql' => array(
+ *       // Key-value pairs of the instance properties.
+ *       // The keys are depend on the type of the service, but there are common
+ *       // properties.
+ *     ),
+ *   ),
+ * );
+ * </code>
+ *
+ * The common properties:
+ *   - label:
+ *     Human readable name of the instance.
+ *     If empty then the machine name of the instance will be used.
+ *     Optional.
+ *     Default: <empty>
+ *   - description:
+ *     Long description of the instance.
+ *     Optional.
+ *     Default: <generated>
+ *   - pid_file:
+ *     Filesystem path to the PID file.
+ *     Required.
+ *   - log_file_std:
+ *     Filesystem path to redirect the standard output into. The '&2' is also a
+ *     valid value.
+ *     Optional.
+ *     Default: <empty>
+ *   - log_file_error:
+ *     Filesystem path to redirect the error output into. The '&1' is also a
+ *     valid value.
+ *     Optional.
+ *     Default: <empty>
+ *   - status_delay:
+ *     Indicate how many seconds need to wait before check the status of the
+ *     instance after the "stop" and "start" commands.
+ *     Optional.
+ *     Default: Depends on the type of the service.
+ *   - executable:
+ *     Filesystem path to the binary executable which is handle the service.
+ *     Optional.
+ *     Default: The default value is detected automatically.
+ *     The "/usr/sbin/memcached" will be recognized as a valid executable in
+ *     case of the "memcache" service.
+ *   - executable_options:
+ *     Array of options to pass to the "executable". The values are depend on
+ *     the type of the service.
+ */
+$instances = array();
+
+foreach (array('5.5.5', '5.4.21') as $version) {
   foreach (array('dev', 'test') as $variant) {
     $version_short = str_replace('.', '', $version);
     $prefix = "{$_SERVER['HOME']}/usr/share/php-{$version}";
@@ -17,7 +78,6 @@ foreach (array('5.5.5', '5.4.21', '5.3.27', '5.3.17', '5.3.10') as $version) {
           '@version' => $version,
           '@variant' => $variant,
         )),
-      'status_delay' => 3,
       'pid_file' => "$prefix/var/run/php-fpm.$variant.pid",
       'executable' => "$prefix/sbin/php-fpm",
       'executable_options' => array(
@@ -37,10 +97,7 @@ foreach (array('5.5.5', '5.4.21', '5.3.27', '5.3.17', '5.3.10') as $version) {
 }
 
 $instances['memcache']['11220'] = array(
-  'label' => '11220',
-  'description' => dt('Long description'),
-  'pid_file' => "/mnt/tmpfs{$_SERVER['HOME']}/var/run/memcache-11220.pid",
-  'executable' => '/usr/sbin/memcached',
+  'pid_file' => '/tmp/memcache-11220.pid',
   'executable_options' => array(
     // -p <num>
     // TCP port number to listen on (default: 11211).
@@ -154,13 +211,15 @@ $instances['memcache']['11220'] = array(
 );
 
 $instances['nginx']['1080'] = array(
-  'label' => '1080',
-  'description' => dt('General Nginx service on port 1080.'),
-  'executable' => "{$_SERVER['HOME']}/usr/sbin/nginx",
-  'pid_file' => "{$_SERVER['HOME']}/var/run/nginx.pid",
+  'pid_file' => '/tmp/nginx.pid',
   'executable_options' => array(
-    'p' => '',
-    'c' => '',
-    'q' => '',
+    // Set prefix path.
+    '-p' => FALSE,
+    // Set configuration file.
+    '-c' => '/path/to/custom-nginx.conf',
+    // Suppress non-error messages during configuration testing.
+    '-q' => FALSE,
+    // Set global directives out of configuration file.
+    '-g' => FALSE,
   ),
 );

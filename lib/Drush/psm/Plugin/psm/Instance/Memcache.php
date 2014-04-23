@@ -36,7 +36,9 @@ class Memcache extends InstanceBase {
     $options = $this->getInfoEntry('executable_options', FALSE, array());
     $options['-P'] = $pid_file ? $pid_file : FALSE;
 
-    $command->addOptions($options);
+    $command->addOptions($options, array(
+        'key_value_separator' => ' ',
+      ));
 
     return $command;
   }

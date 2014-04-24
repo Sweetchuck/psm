@@ -153,8 +153,9 @@ function psm_drush_command() {
     'description' => dt('Something helpful description.'),
     'examples' => array(
       'drush psm-start' => dt('Start the all available instances of all available services.'),
-      'drush psm-start memcache' => dt('@todo'),
-      'drush psm-start memcache.11211' => dt('@todo.'),
+      'drush psm-start memcache' => dt('Start all configured Memcache instances.'),
+      'drush psm-start memcache.11211' => dt('Start Memcache instance which is identified with 11211.'),
+      'drush psm-start memcache.11212:mysql.3306' => dt('Start the "11211" instance of Memcache service and the "3306" instance of MySQL service.'),
     ),
   ) + $base;
 
@@ -162,8 +163,9 @@ function psm_drush_command() {
     'description' => dt('Something helpful description.'),
     'examples' => array(
       'drush psm-stop' => dt('Stop the all available instances of all available services.'),
-      'drush psm-stop memcache' => dt('@todo'),
-      'drush psm-stop memcache.11211' => dt('@todo.'),
+      'drush psm-stop memcache' => dt('Stop all configured Memcache instances.'),
+      'drush psm-stop memcache.11211' => dt('Start Memcache instance which is identified with 11211.'),
+      'drush psm-stop memcache.11212:mysql.3306' => dt('Stop the "11211" instance of Memcache service and the "3306" instance of MySQL service.'),
     ),
   ) + $base;
 
@@ -172,7 +174,8 @@ function psm_drush_command() {
     'examples' => array(
       'drush psm-restart' => dt('Restart the all available instances of all available services.'),
       'drush psm-restart memcache' => dt('@todo'),
-      'drush psm-restart memcache.11211' => dt('@todo.'),
+      'drush psm-restart memcache.11211' => dt('Restart Memcache instance which is identified with 11211.'),
+      'drush psm-restart memcache.11212:mysql.3306' => dt('Restart the "11211" instance of Memcache service and the "3306" instance of MySQL service.'),
     ),
   ) + $base;
 
@@ -209,7 +212,7 @@ function psm_drush_help($subject = NULL) {
       break;
 
     case 'error:psm_service_unknown':
-      $help[] = dt('Service "@name" is not exists.', array('@name' => $subject_args[0]));
+      $help[] = dt('Service "@name" is not exists.', array('@name' => implode(':', $subject_args)));
       $help[] = dt('Try to run the `drush psm-services`.');
       break;
 

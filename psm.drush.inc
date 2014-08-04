@@ -578,6 +578,10 @@ function drush_psm_restart() {
   foreach ($instances as $instance_list) {
     foreach ($instance_list as $info) {
       $instance = psm_instance_factory($info);
+      if (!$instance->status()) {
+        continue;
+      }
+
       $id = $instance->id();
       $output[$id] = array(
         'service' => $instance->service(),

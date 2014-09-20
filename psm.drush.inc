@@ -9,110 +9,8 @@
  * Implements hook_drush_command().
  */
 function psm_drush_command() {
-  $commands = array();
-
-  $commands['docs-psm'] = array(
-    'description' => dt('Personal service manager.'),
-    'hidden' => TRUE,
-    'topic' => TRUE,
-    'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
-    'callback' => 'drush_print_file',
-    'callback arguments' => array(__DIR__ . '/README.md'),
-  );
-
-  $commands['psm-services'] = array(
-    'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
-    'description' => dt('Something helpful description.'),
-    'required-arguments' => FALSE,
-    'arguments' => array(
-      'service' => dt('Service'),
-    ),
-    'examples' => array(
-      'drush psm-services' => dt('Description of what this command will do.'),
-    ),
-    'engines' => array(
-      'outputformat' => array(
-        'default' => 'table',
-        'pipe-format' => 'list',
-        'field-labels' => array(
-          'name' => dt('Name'),
-          'label' => dt('Label'),
-          'description' => dt('Description'),
-          'links' => dt('Links'),
-        ),
-        'output-data-type' => 'format-table',
-      ),
-    ),
-  );
-
-  $commands['psm-instances'] = array(
-    'aliases' => array('psm'),
-    'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
-    'description' => dt('Something helpful description.'),
-    'required-arguments' => FALSE,
-    'arguments' => array(
-      'service' => dt('Service'),
-      'instance' => dt('Instance'),
-    ),
-    'options' => array(
-      'group' => array(
-        'description' => dt('Group name. Only used if the instance argument is omitted.'),
-        'example_value' => 'my-project-01',
-        'required' => FALSE,
-        'hidden' => FALSE,
-      ),
-    ),
-    'examples' => array(
-      'drush psm-instances' => dt('Description of what this command will do.'),
-      'drush psm-instances memcache' => dt('Description of what this command will do.'),
-      'drush psm-instances memcache.3306' => dt('Description of what this command will do.'),
-    ),
-    'engines' => array(
-      'outputformat' => array(
-        'default' => 'table',
-        'pipe-format' => 'list',
-        'field-labels' => array(
-          'service_label' => dt('Service'),
-          'service_name' => dt('Service ID'),
-          'name' => dt('Name'),
-          'label' => dt('Label'),
-          'description' => dt('Description'),
-          'status' => dt('Status'),
-          'version' => dt('Version'),
-          'uri' => dt('URI'),
-        ),
-        'output-data-type' => 'format-table',
-      ),
-    ),
-  );
-
-  $commands['psm-groups'] = array(
-    'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
-    'description' => dt('Something helpful description.'),
-    'required-arguments' => FALSE,
-    'arguments' => array(
-      'group' => dt('Group name'),
-    ),
-    'examples' => array(
-      'drush psm-groups' => dt('@todo'),
-      'drush psm-groups my-project-01' => dt('@todo'),
-    ),
-    'engines' => array(
-      'outputformat' => array(
-        'default' => 'table',
-        'pipe-format' => 'list',
-        'field-labels' => array(
-          'name' => dt('Name'),
-          'label' => dt('Label'),
-          'description' => dt('Description'),
-        ),
-        'output-data-type' => 'format-table',
-      ),
-    ),
-  );
-
   $base = array(
-    'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
+    'bootstrap' => DRUSH_BOOTSTRAP_NONE,
     'required-arguments' => FALSE,
     'arguments' => array(
       'instance_list' => dt('Name of the instances.'),
@@ -139,56 +37,156 @@ function psm_drush_command() {
     ),
   );
 
-  $commands['psm-status'] = array(
-    'description' => dt('Something helpful description.'),
-    'examples' => array(
-      'drush psm-status' => dt('Status messages about the all available services and instances.'),
-      'drush psm-status memcache' => dt('Status messages about the all instances of the memcache service.'),
-      'drush psm-status memcache.11211' => dt('Status messages of the memcache service instance where the identifier is 11211.'),
-      'drush psm-status memcache.11211,11212' => dt('Status messages of the memcache service instance where the identifier is 11211 or 11212.'),
+  return array(
+    'docs-psm' => array(
+      'description' => dt('Personal service manager.'),
+      'hidden' => TRUE,
+      'topic' => TRUE,
+      'bootstrap' => DRUSH_BOOTSTRAP_NONE,
+      'callback' => 'drush_print_file',
+      'callback arguments' => array(__DIR__ . '/README.md'),
     ),
-  ) + $base;
 
-  $commands['psm-start'] = array(
-    'description' => dt('Something helpful description.'),
-    'examples' => array(
-      'drush psm-start' => dt('Start the all available instances of all available services.'),
-      'drush psm-start memcache' => dt('Start all configured Memcache instances.'),
-      'drush psm-start memcache.11211' => dt('Start Memcache instance which is identified with 11211.'),
-      'drush psm-start memcache.11212:mysql.3306' => dt('Start the "11211" instance of Memcache service and the "3306" instance of MySQL service.'),
+    'psm-services' => array(
+      'bootstrap' => DRUSH_BOOTSTRAP_NONE,
+      'description' => dt('Something helpful description.'),
+      'required-arguments' => FALSE,
+      'arguments' => array(
+        'service' => dt('Service'),
+      ),
+      'examples' => array(
+        'drush psm-services' => dt('Description of what this command will do.'),
+      ),
+      'engines' => array(
+        'outputformat' => array(
+          'default' => 'table',
+          'pipe-format' => 'list',
+          'field-labels' => array(
+            'name' => dt('Name'),
+            'label' => dt('Label'),
+            'description' => dt('Description'),
+            'links' => dt('Links'),
+          ),
+          'output-data-type' => 'format-table',
+        ),
+      ),
     ),
-  ) + $base;
 
-  $commands['psm-stop'] = array(
-    'description' => dt('Something helpful description.'),
-    'examples' => array(
-      'drush psm-stop' => dt('Stop the all available instances of all available services.'),
-      'drush psm-stop memcache' => dt('Stop all configured Memcache instances.'),
-      'drush psm-stop memcache.11211' => dt('Start Memcache instance which is identified with 11211.'),
-      'drush psm-stop memcache.11212:mysql.3306' => dt('Stop the "11211" instance of Memcache service and the "3306" instance of MySQL service.'),
+    'psm-instances' => array(
+      'aliases' => array('psm'),
+      'bootstrap' => DRUSH_BOOTSTRAP_NONE,
+      'description' => dt('Something helpful description.'),
+      'required-arguments' => FALSE,
+      'arguments' => array(
+        'service' => dt('Service'),
+        'instance' => dt('Instance'),
+      ),
+      'options' => array(
+        'group' => array(
+          'description' => dt('Group name. Only used if the instance argument is omitted.'),
+          'example_value' => 'my-project-01',
+          'required' => FALSE,
+          'hidden' => FALSE,
+        ),
+      ),
+      'examples' => array(
+        'drush psm-instances' => dt('Description of what this command will do.'),
+        'drush psm-instances memcache' => dt('Description of what this command will do.'),
+        'drush psm-instances memcache.3306' => dt('Description of what this command will do.'),
+      ),
+      'engines' => array(
+        'outputformat' => array(
+          'default' => 'table',
+          'pipe-format' => 'list',
+          'field-labels' => array(
+            'service_label' => dt('Service'),
+            'service_name' => dt('Service ID'),
+            'name' => dt('Name'),
+            'label' => dt('Label'),
+            'description' => dt('Description'),
+            'status' => dt('Status'),
+            'version' => dt('Version'),
+            'uri' => dt('URI'),
+          ),
+          'output-data-type' => 'format-table',
+        ),
+      ),
     ),
-  ) + $base;
 
-  $commands['psm-restart'] = array(
-    'description' => dt('Something helpful description.'),
-    'examples' => array(
-      'drush psm-restart' => dt('Restart the all available instances of all available services.'),
-      'drush psm-restart memcache' => dt('@todo'),
-      'drush psm-restart memcache.11211' => dt('Restart Memcache instance which is identified with 11211.'),
-      'drush psm-restart memcache.11212:mysql.3306' => dt('Restart the "11211" instance of Memcache service and the "3306" instance of MySQL service.'),
+    'psm-groups' => array(
+      'bootstrap' => DRUSH_BOOTSTRAP_NONE,
+      'description' => dt('Something helpful description.'),
+      'required-arguments' => FALSE,
+      'arguments' => array(
+        'group' => dt('Group name'),
+      ),
+      'examples' => array(
+        'drush psm-groups' => dt('@todo'),
+        'drush psm-groups my-project-01' => dt('@todo'),
+      ),
+      'engines' => array(
+        'outputformat' => array(
+          'default' => 'table',
+          'pipe-format' => 'list',
+          'field-labels' => array(
+            'name' => dt('Name'),
+            'label' => dt('Label'),
+            'description' => dt('Description'),
+          ),
+          'output-data-type' => 'format-table',
+        ),
+      ),
     ),
-  ) + $base;
 
-  $commands['psm-reload'] = array(
-    'description' => dt('Something helpful description.'),
-    'examples' => array(
-      'drush psm-reload' => dt('Restart the all available instances of all available services.'),
-      'drush psm-reload memcache' => dt('@todo'),
-      'drush psm-reload memcache.11211' => dt('@todo.'),
-    ),
-  ) + $base;
+    'psm-status' => array(
+      'description' => dt('Something helpful description.'),
+      'examples' => array(
+        'drush psm-status' => dt('Status messages about the all available services and instances.'),
+        'drush psm-status memcache' => dt('Status messages about the all instances of the memcache service.'),
+        'drush psm-status memcache.11211' => dt('Status messages of the memcache service instance where the identifier is 11211.'),
+        'drush psm-status memcache.11211,11212' => dt('Status messages of the memcache service instance where the identifier is 11211 or 11212.'),
+      ),
+    ) + $base,
 
-  return $commands;
+    'psm-start' => array(
+      'description' => dt('Something helpful description.'),
+      'examples' => array(
+        'drush psm-start' => dt('Start the all available instances of all available services.'),
+        'drush psm-start memcache' => dt('Start all configured Memcache instances.'),
+        'drush psm-start memcache.11211' => dt('Start Memcache instance which is identified with 11211.'),
+        'drush psm-start memcache.11212:mysql.3306' => dt('Start the "11211" instance of Memcache service and the "3306" instance of MySQL service.'),
+      ),
+    ) + $base,
+
+    'psm-stop' => array(
+      'description' => dt('Something helpful description.'),
+      'examples' => array(
+        'drush psm-stop' => dt('Stop the all available instances of all available services.'),
+        'drush psm-stop memcache' => dt('Stop all configured Memcache instances.'),
+        'drush psm-stop memcache.11211' => dt('Start Memcache instance which is identified with 11211.'),
+        'drush psm-stop memcache.11212:mysql.3306' => dt('Stop the "11211" instance of Memcache service and the "3306" instance of MySQL service.'),
+      ),
+    ) + $base,
+
+    'psm-restart' => array(
+      'description' => dt('Something helpful description.'),
+      'examples' => array(
+        'drush psm-restart' => dt('Restart the all available instances of all available services.'),
+        'drush psm-restart memcache' => dt('@todo'),
+        'drush psm-restart memcache.11211' => dt('Restart Memcache instance which is identified with 11211.'),
+        'drush psm-restart memcache.11212:mysql.3306' => dt('Restart the "11211" instance of Memcache service and the "3306" instance of MySQL service.'),
+      ),
+    ) + $base,
+
+    'psm-reload' => array(
+      'description' => dt('Something helpful description.'),
+      'examples' => array(
+        'drush psm-reload' => dt('Restart the all available instances of all available services.'),
+        'drush psm-reload memcache' => dt('@todo'),
+        'drush psm-reload memcache.11211' => dt('@todo.'),
+      ),
+    ) + $base,
+  );
 }
 
 /**
@@ -647,132 +645,134 @@ function drush_psm_groups($name = NULL) {
  * Implements hook_psm_service_info().
  */
 function psm_psm_service_info() {
-  $base = array(
-    'command_file' => 'psm',
+  return array(
+    'apache' => array(
+      'label' => 'Apache',
+      'description' => dt('The Apache HTTP Server Project is a collaborative software development effort aimed at creating a robust, commercial-grade, featureful, and freely-available source code implementation of an HTTP (Web) server.'),
+      'links' => array(
+        'home' => 'http://httpd.apache.org',
+      ),
+    ),
+
+    'elasticsearch' => array(
+      'label' => 'Elasticsearch',
+      'description' => dt('Elasticsearch is a flexible and powerful open source, distributed, real-time search and analytics engine.'),
+      'links' => array(
+        'home' => 'http://www.elasticsearch.org/',
+      ),
+    ),
+
+    'jenkins' => array(
+      'label' => 'Jenkins',
+      'description' => dt('An extendable open source continuous integration server.'),
+      'links' => array(
+        'home' => 'http://jenkins-ci.org',
+      ),
+    ),
+
+    'memcache' => array(
+      'label' => 'MemCache',
+      'description' => dt('Free & open source, high-performance, distributed memory object caching system.'),
+      'links' => array(
+        'home' => 'http://memcached.org',
+      ),
+    ),
+
+    'mongodb' => array(
+      'label' => 'MongoDB',
+      'description' => dt('MongoDB (from "humongous") is an open-source document database, and the leading NoSQL database. Written in C++.'),
+      'links' => array(
+        'home' => 'http://www.mongodb.org',
+      ),
+    ),
+
+    'mysql' => array(
+      'label' => 'MySQL',
+      'description' => dt("The world's most popular open source database."),
+      'links' => array(
+        'home' => 'http://www.mysql.com',
+        'percona' => 'http://www.percona.com',
+        'mariadb' => 'https://mariadb.org',
+      ),
+    ),
+
+    'nginx' => array(
+      'label' => 'Nginx',
+      'description' => dt('nginx [engine x] is an HTTP and reverse proxy server, as well as a mail proxy server, written by Igor Sysoev.'),
+      'links' => array(
+        'home' => 'http://nginx.org',
+      ),
+    ),
+
+    'phpfpm' => array(
+      'label' => 'PhpFpm',
+      'description' => dt('FPM (FastCGI Process Manager) is an alternative PHP FastCGI implementation with some additional features (mostly) useful for heavy-loaded sites.'),
+      'links' => array(
+        'home' => 'http://www.php.net/manual/en/install.fpm.php',
+      ),
+    ),
+
+    'postgresql' => array(
+      'label' => 'PostgreSQL',
+      'description' => dt('PostgreSQL is a powerful, open source object-relational database system.'),
+      'links' => array(
+        'home' => 'http://www.postgresql.org',
+      ),
+    ),
+
+    'redis' => array(
+      'label' => 'redis',
+      'description' => dt('Redis is an open source, BSD licensed, advanced key-value store.'),
+      'links' => array(
+        'home' => 'http://redis.io',
+      ),
+    ),
+
+    'selenium' => array(
+      'label' => 'Selenium',
+      'description' => dt('Primarily it is for automating web applications for testing purposes, but is certainly not limited to just that.'),
+      'links' => array(
+        'home' => 'http://docs.seleniumhq.org',
+      ),
+    ),
+
+    'solr' => array(
+      'label' => 'Apache Solr',
+      'description' => dt('SolrTM is the popular, blazing fast open source enterprise search platform from the Apache LuceneTM project.'),
+      'links' => array(
+        'home' => 'http://lucene.apache.org/solr',
+      ),
+      'class' => array(
+        1 => '\Drush\psm\Plugin\psm\Instance\Solr1',
+        3 => '\Drush\psm\Plugin\psm\Instance\Solr3',
+        4 => '\Drush\psm\Plugin\psm\Instance\Solr4',
+      ),
+    ),
+
+    'tomcat' => array(
+      'label' => 'Tomcat',
+      'description' => dt('Apache Tomcat is an open source software implementation of the Java Servlet and JavaServer Pages technologies.'),
+      'links' => array(
+        'home' => 'http://tomcat.apache.org',
+      ),
+    ),
+
+    'varnish' => array(
+      'label' => 'Varnish',
+      'description' => dt('Varnish Cache is a web application accelerator also known as a caching HTTP reverse proxy.'),
+      'links' => array(
+        'home' => 'https://www.varnish-cache.org',
+      ),
+    ),
+
+    'xapian' => array(
+      'label' => 'Xapian',
+      'description' => dt("Xapian is an Open Source Search Engine Library, released under the GPL. It's written in C++."),
+      'links' => array(
+        'home' => 'http://xapian.org',
+      ),
+    ),
   );
-
-  $info = array();
-
-  $info['apache'] = array(
-    'label' => 'Apache',
-    'description' => dt('The Apache HTTP Server Project is a collaborative software development effort aimed at creating a robust, commercial-grade, featureful, and freely-available source code implementation of an HTTP (Web) server.'),
-    'links' => array(
-      'home' => 'http://httpd.apache.org',
-    ),
-  ) + $base;
-
-  $info['jenkins'] = array(
-    'label' => 'Jenkins',
-    'description' => dt('An extendable open source continuous integration server.'),
-    'links' => array(
-      'home' => 'http://jenkins-ci.org',
-    ),
-  ) + $base;
-
-  $info['memcache'] = array(
-    'label' => 'MemCache',
-    'description' => dt('Free & open source, high-performance, distributed memory object caching system.'),
-    'links' => array(
-      'home' => 'http://memcached.org',
-    ),
-  ) + $base;
-
-  $info['mongodb'] = array(
-    'label' => 'MongoDB',
-    'description' => dt('MongoDB (from "humongous") is an open-source document database, and the leading NoSQL database. Written in C++.'),
-    'links' => array(
-      'home' => 'http://www.mongodb.org',
-    ),
-  ) + $base;
-
-  $info['mysql'] = array(
-    'label' => 'MySQL',
-    'description' => dt("The world's most popular open source database."),
-    'links' => array(
-      'home' => 'http://www.mysql.com',
-      'percona' => 'http://www.percona.com',
-      'mariadb' => 'https://mariadb.org',
-    ),
-  );
-
-  $info['nginx'] = array(
-    'label' => 'Nginx',
-    'description' => dt('nginx [engine x] is an HTTP and reverse proxy server, as well as a mail proxy server, written by Igor Sysoev.'),
-    'links' => array(
-      'home' => 'http://nginx.org',
-    ),
-  ) + $base;
-
-  $info['phpfpm'] = array(
-    'label' => 'PhpFpm',
-    'description' => dt('FPM (FastCGI Process Manager) is an alternative PHP FastCGI implementation with some additional features (mostly) useful for heavy-loaded sites.'),
-    'links' => array(
-      'home' => 'http://www.php.net/manual/en/install.fpm.php',
-    ),
-  );
-
-  $info['postgresql'] = array(
-    'label' => 'PostgreSQL',
-    'description' => dt('PostgreSQL is a powerful, open source object-relational database system.'),
-    'links' => array(
-      'home' => 'http://www.postgresql.org',
-    ),
-  ) + $base;
-
-  $info['redis'] = array(
-    'label' => 'redis',
-    'description' => dt('Redis is an open source, BSD licensed, advanced key-value store.'),
-    'links' => array(
-      'home' => 'http://redis.io',
-    ),
-  ) + $base;
-
-  $info['selenium'] = array(
-    'label' => 'Selenium',
-    'description' => dt('Primarily it is for automating web applications for testing purposes, but is certainly not limited to just that.'),
-    'links' => array(
-      'home' => 'http://docs.seleniumhq.org',
-    ),
-  ) + $base;
-
-  $info['solr'] = array(
-    'label' => 'Apache Solr',
-    'description' => dt('SolrTM is the popular, blazing fast open source enterprise search platform from the Apache LuceneTM project.'),
-    'links' => array(
-      'home' => 'http://lucene.apache.org/solr',
-    ),
-    'class' => array(
-      1 => '\Drush\psm\Plugin\psm\Instance\Solr1',
-      3 => '\Drush\psm\Plugin\psm\Instance\Solr3',
-      4 => '\Drush\psm\Plugin\psm\Instance\Solr4',
-    ),
-  ) + $base;
-
-  $info['tomcat'] = array(
-    'label' => 'Tomcat',
-    'description' => dt('Apache Tomcat is an open source software implementation of the Java Servlet and JavaServer Pages technologies.'),
-    'links' => array(
-      'home' => 'http://tomcat.apache.org',
-    ),
-  ) + $base;
-
-  $info['varnish'] = array(
-    'label' => 'Varnish',
-    'description' => dt('Varnish Cache is a web application accelerator also known as a caching HTTP reverse proxy.'),
-    'links' => array(
-      'home' => 'https://www.varnish-cache.org',
-    ),
-  ) + $base;
-
-  $info['xapian'] = array(
-    'label' => 'Xapian',
-    'description' => dt("Xapian is an Open Source Search Engine Library, released under the GPL. It's written in C++."),
-    'links' => array(
-      'home' => 'http://xapian.org',
-    ),
-  ) + $base;
-
-  return $info;
 }
 
 /**

@@ -430,6 +430,31 @@ abstract class InstanceBase implements InstanceInterface {
   }
 
   /**
+   * @param array $keys
+   *
+   * @return string
+   *
+   * @throws \Exception
+   */
+  protected function buildEnvironment(array $keys = array()) {
+    $env = $this->getInfoEntry('environment', FALSE, array());
+    if (!$env) {
+      return '';
+    }
+
+    if ($keys) {
+      $env = array_intersect_key($env, array_flip($keys));
+    }
+
+    $e = array();
+    foreach ($env as $name => $value) {
+      $e[] = $name . '=' . escapeshellarg($value);
+    }
+
+    return implode(' ', $e);
+  }
+  
+  /**
    * Get the command to start the instance.
    *
    * @return Command

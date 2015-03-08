@@ -710,6 +710,20 @@ function psm_psm_service_info() {
       'links' => array(
         'home' => 'http://www.php.net/manual/en/install.fpm.php',
       ),
+      'class' => array(
+        '5.2' => '\Drush\psm\Plugin\psm\Instance\Phpfpm52',
+        '5.3' => '\Drush\psm\Plugin\psm\Instance\Phpfpm',
+        '5.4' => '\Drush\psm\Plugin\psm\Instance\Phpfpm',
+        '5.5' => '\Drush\psm\Plugin\psm\Instance\Phpfpm',
+        '5.6' => '\Drush\psm\Plugin\psm\Instance\Phpfpm',
+        '5.7' => '\Drush\psm\Plugin\psm\Instance\Phpfpm',
+        '5.8' => '\Drush\psm\Plugin\psm\Instance\Phpfpm',
+        '5.9' => '\Drush\psm\Plugin\psm\Instance\Phpfpm',
+        '6.0' => '\Drush\psm\Plugin\psm\Instance\Phpfpm',
+        '6.1' => '\Drush\psm\Plugin\psm\Instance\Phpfpm',
+        '6.2' => '\Drush\psm\Plugin\psm\Instance\Phpfpm',
+        '6.3' => '\Drush\psm\Plugin\psm\Instance\Phpfpm',
+      ),
     ),
 
     'postgresql' => array(

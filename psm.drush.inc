@@ -723,6 +723,7 @@ function psm_psm_service_info() {
         '6.1' => '\Drush\psm\Plugin\psm\Instance\Phpfpm',
         '6.2' => '\Drush\psm\Plugin\psm\Instance\Phpfpm',
         '6.3' => '\Drush\psm\Plugin\psm\Instance\Phpfpm',
+        '7.0' => '\Drush\psm\Plugin\psm\Instance\Phpfpm',
       ),
     ),
 
